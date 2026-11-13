@@ -1,4 +1,5 @@
 import { parse } from '../';
+import ParseError from '../parse-error';
 
 test('it should parse example from readme', () => {
   const parsed = parse(`
@@ -236,4 +237,20 @@ test('a multiline literal string holds double quotes at any count', () => {
 
 test('rejects the invalid float 1.e06 (fraction must start with a digit)', () => {
   expect(() => parse('x = 1.e06\n')).toThrow(/fraction must start with digit/);
+});
+
+describe('a quoted string ends at its closing quote', () => {
+  test.each([
+    ['a = "x"-\n'],
+    ["v = 'C'T\n"],
+    ["h = { v = 'C'T, w = 1 }\n"],
+    ['a = ["x"y]\n'],
+    ['"k"x = 1\n'],
+  ])('rejects trailing characters: %j', src => {
+    expect(() => parse(src)).toThrow(ParseError);
+  });
+
+  test('keeps quotes and escapes inside the string', () => {
+    expect(parse('a = "q\\"x\\\\"\nb = \'\'\nc = ""\n')).toEqual({ a: 'q"x\\', b: '', c: '' });
+  });
 });

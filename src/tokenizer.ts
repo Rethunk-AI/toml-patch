@@ -328,6 +328,7 @@ export function* tokenize(input: string, newlineState?: NewlineScanState): Itera
     const start = pos;
     let double_quoted = ch === DOUBLE_QUOTE;
     let single_quoted = ch === SINGLE_QUOTE;
+    const starts_quoted = double_quoted || single_quoted;
 
     while (pos < len) {
       // Peek at next character – if none, we're done
@@ -400,6 +401,10 @@ export function* tokenize(input: string, newlineState?: NewlineScanState): Itera
       const currentChar = input[pos];
       if (currentChar === DOUBLE_QUOTE && !single_quoted) double_quoted = !double_quoted;
       if (currentChar === SINGLE_QUOTE && !double_quoted) single_quoted = !single_quoted;
+
+      // A quoted token ends at its closing quote, so trailing characters (`"x"-`) become a separate
+      // token the parser rejects rather than part of the string's raw text.
+      if (starts_quoted && !double_quoted && !single_quoted) break;
 
       if (pos + 1 >= len) break;
 
