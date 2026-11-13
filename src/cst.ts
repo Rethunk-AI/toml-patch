@@ -82,6 +82,8 @@ export function isTable(node: TreeNode): node is Table {
 export interface TableKey extends TreeNode {
   type: NodeType.TableKey;
   item: Key;
+  /** Whitespace between the brackets and the key (`[ a ]`), which the key's raw text leaves out. */
+  padding?: [string, string];
 }
 export function isTableKey(node: TreeNode): node is TableKey {
   return node.type === NodeType.TableKey;
@@ -127,6 +129,8 @@ export function isTableArray(node: TreeNode): node is TableArray {
 export interface TableArrayKey extends TreeNode {
   type: NodeType.TableArrayKey;
   item: Key;
+  /** Whitespace between the brackets and the key (`[ a ]`), which the key's raw text leaves out. */
+  padding?: [string, string];
 }
 export function isTableArrayKey(node: TreeNode): node is TableArrayKey {
   return node.type === NodeType.TableArrayKey;

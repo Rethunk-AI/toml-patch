@@ -12582,3 +12582,22 @@ describe('adding a new array of tables', () => {
     expect(parse(result)).toEqual(updated);
   });
 });
+
+describe('whitespace inside table header brackets', () => {
+  test.each([
+    ['[ t ]\nx = 1\n'],
+    ['[[ t ]]\nx = 1\n\n[[ t ]]\nx = 2\n'],
+    ['[ a . b ]\nx = 1\n'],
+    ['a = 1\n[  t]\n[u\t]\n'],
+  ])('survives an unrelated edit: %j', src => {
+    const value = parse(src);
+    value.extra = 1;
+    const result = patch(src, value);
+    expect(result.split('\n').filter(line => line.includes('['))).toEqual(src.split('\n').filter(line => line.includes('[')));
+    expect(patch(src, parse(src))).toBe(src);
+  });
+
+  test('keeps the padding when the table is renamed', () => {
+    expect(patch('[ t ]\nx = 1\n', { renamed: { x: 1 } })).toBe('[ renamed ]\nx = 1\n');
+  });
+});

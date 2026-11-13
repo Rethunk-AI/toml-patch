@@ -567,6 +567,13 @@ function table(cursor: Cursor<Token>, input: string): Table | TableArray {
     }
   }
 
+  const headerLine = getLine(input, key.loc!.start);
+  const padding: [string, string] = [
+    headerLine.slice(key.loc!.start.column + (is_table ? 1 : 2), key.item.loc.start.column),
+    headerLine.slice(key.item.loc.end.column, cursor.value!.loc.start.column)
+  ];
+  if (padding[0] || padding[1]) key.padding = padding;
+
   // Set end location from closing tag
   if (!is_table) cursor.next();
   key.loc!.end = cursor.value!.loc.end;

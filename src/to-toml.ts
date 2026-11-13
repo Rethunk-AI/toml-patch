@@ -57,6 +57,12 @@ const BY_NEW_LINE = /(\r\n|\n)/g;
  * const tomlString = toTOML(cst, TomlFormat.default());
  * ```
  */
+/** Renders `[key]` or `[[key]]` with the whitespace the source had inside the brackets. */
+function bracketedKey(key: TableKey | TableArrayKey, width: 1 | 2): string {
+  const [left, right] = key.padding ?? ['', ''];
+  return '['.repeat(width) + left + key.item.raw + right + ']'.repeat(width);
+}
+
 export default function toTOML(cst: CST, format: TomlFormat): string {
 
   const lines: string[] = [];
@@ -93,7 +99,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
       case NodeType.TableKey: {
         const tk = node as TableKey;
         // Emit "[key]" in one write instead of three (bracket, key, bracket).
-        write(lines, tk.loc, '[' + tk.item.raw + ']');
+        write(lines, tk.loc, bracketedKey(tk, 1));
         break;
       }
 
@@ -106,7 +112,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
       case NodeType.TableArrayKey: {
         const tak = node as TableArrayKey;
         // Emit "[[key]]" in one write instead of three.
-        write(lines, tak.loc, '[[' + tak.item.raw + ']]');
+        write(lines, tak.loc, bracketedKey(tak, 2));
         break;
       }
 
@@ -553,7 +559,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
       case NodeType.TableKey: {
         const tableKey = node as TableKey;
         if (place) advanceTo(tableKey.loc.start.line, tableKey.loc.start.column);
-        append(`[${tableKey.item.raw}]`);
+        append(bracketedKey(tableKey, 1));
         break;
       }
       case NodeType.TableArray: {
@@ -565,7 +571,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
       case NodeType.TableArrayKey: {
         const tableArrayKey = node as TableArrayKey;
         if (place) advanceTo(tableArrayKey.loc.start.line, tableArrayKey.loc.start.column);
-        append(`[[${tableArrayKey.item.raw}]]`);
+        append(bracketedKey(tableArrayKey, 2));
         break;
       }
       case NodeType.KeyValue: {
@@ -741,7 +747,7 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
       }
       case NodeType.TableKey: {
         const tableKey = node as TableKey;
-        stack.push([1, `[${tableKey.item.raw}]`]);
+        stack.push([1, bracketedKey(tableKey, 1)]);
         if (place) stack.push([3, tableKey.loc.start.line, tableKey.loc.start.column]);
         break;
       }
@@ -754,7 +760,7 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
       }
       case NodeType.TableArrayKey: {
         const tableArrayKey = node as TableArrayKey;
-        stack.push([1, `[[${tableArrayKey.item.raw}]]`]);
+        stack.push([1, bracketedKey(tableArrayKey, 2)]);
         if (place) stack.push([3, tableArrayKey.loc.start.line, tableArrayKey.loc.start.column]);
         break;
       }
