@@ -12570,3 +12570,15 @@ describe('renaming a key whose value is a container', () => {
     expect(result).toBe('renamed = [{ a = 1 }, { a = 2 }]\n');
   });
 });
+
+describe('adding a new array of tables', () => {
+  test.each([
+    ['at the root', 'a = 1\n', { a: 1, t: [{ x: 1 }, { x: 2 }] }, 'a = 1\n\n[[t]]\nx = 1\n\n[[t]]\nx = 2\n'],
+    ['to an empty document', '', { t: [{ x: 1 }] }, '[[t]]\nx = 1'],
+    ['with CRLF', 'a = 1\r\n', { a: 1, t: [{ x: 1 }] }, 'a = 1\r\n\r\n[[t]]\r\nx = 1\r\n'],
+  ])('%s', (_name, src, updated, expected) => {
+    const result = patch(src, updated);
+    expect(result).toBe(expected);
+    expect(parse(result)).toEqual(updated);
+  });
+});

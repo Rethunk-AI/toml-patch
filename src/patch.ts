@@ -263,6 +263,20 @@ function normalizeAotEntryComments(doc: Document, ancestorBoundariesOnly = false
   }
 }
 
+// A new array of tables has no single node at its path in the updated CST, only one [[key]]
+// entry per element, so its Add is split into one Add per entry for the append path to handle.
+function expandTableArrayAdds(changes: Change[], updated: Document): Change[] {
+  return changes.flatMap(change => {
+    if (!isAdd(change) || tryFindByPath(updated, change.path)) return [change];
+    const entries: Change[] = [];
+    for (let entry = tryFindByPath(updated, change.path.concat(0)); entry && isTableArray(entry);
+      entry = tryFindByPath(updated, change.path.concat(entries.length))) {
+      entries.push({ ...change, path: change.path.concat(entries.length) });
+    }
+    return entries.length ? entries : [change];
+  });
+}
+
 export function patchCst(
   existing_cst: CST,
   updated: any,
@@ -326,11 +340,11 @@ export function patchCst(
       document: existing_document
     };
   }
-  const changes = reorder(coalesceStructuralReplacements(
+  const changes = reorder(expandTableArrayAdds(coalesceStructuralReplacements(
     existing_document,
     updated_js,
     diff(existing_js, updated_js, [], { updateOrder: format.updateOrder, orderSource: updated })
-  ));
+  ), updated_document));
 
   if (changes.length === 0) {
     return {
