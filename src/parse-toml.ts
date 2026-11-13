@@ -672,7 +672,11 @@ function datetime(cursor: Cursor<Token>, input: string): DateTime {
     cursor.peek().value!.type === TokenType.Literal &&
     dateFormatHelper.IS_FULL_DATE.test(raw) &&
     /^\d/.test(cursor.peek().value!.raw) &&
-    dateFormatHelper.IS_FULL_TIME.test(cursor.peek().value!.raw)
+    dateFormatHelper.IS_FULL_TIME.test(cursor.peek().value!.raw) &&
+    // RFC 3339 as TOML allows it: exactly one space may replace the T, never a tab or a run.
+    cursor.peek().value!.loc.start.line === loc.end.line &&
+    cursor.peek().value!.loc.start.column === loc.end.column + 1 &&
+    getLine(input, loc.end)[loc.end.column] === ' '
   ) {
     const start = loc.start;
 

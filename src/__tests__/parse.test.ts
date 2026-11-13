@@ -299,3 +299,13 @@ describe('fractional seconds need seconds', () => {
     expect([Number.isNaN(a.getTime()), Number.isNaN(b.getTime())]).toEqual([false, false]);
   });
 });
+
+describe('a date and time are separated by T or one space', () => {
+  test.each([['a = 2083-08-17\t08:55:03\n'], ['a = 2083-08-17  08:55:03\n'], ['a = [2083-08-17\t08:55:03]\n']])('rejects %j', src => {
+    expect(() => parse(src)).toThrow(ParseError);
+  });
+
+  test('joins a date and time across one space', () => {
+    expect(parse('a = 2083-08-17 08:55:03Z\n').a.getTime()).toBe(Date.UTC(2083, 7, 17, 8, 55, 3));
+  });
+});
