@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           ls -la ./pack
-          count=$(ls -1 ./pack/*.tgz 2>/dev/null | wc -l)
+          count=$(find ./pack -maxdepth 1 -name "*.tgz" | wc -l)
           if [ "$count" -eq 0 ]; then
             echo "No .tgz file was produced in ./pack" >&2
             exit 1

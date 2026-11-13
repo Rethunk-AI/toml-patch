@@ -45,7 +45,7 @@ jobs:
         run: |
           current=$(jq -r '.version' package.json)
           echo "Current version: $current"
-          echo "version=$current" >> $GITHUB_OUTPUT
+          echo "version=$current" >> "$GITHUB_OUTPUT"
 
       - name: Calculate next version
         id: next_version
@@ -66,8 +66,8 @@ jobs:
             new_version="$major.$minor.$patch"
             echo "Next version: $new_version"
           fi
-          echo "version=$new_version" >> $GITHUB_OUTPUT
-          echo "tag=v$new_version" >> $GITHUB_OUTPUT
+          echo "version=$new_version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$new_version" >> "$GITHUB_OUTPUT"
 
       - name: Update package.json and jsr.jsonc
         if: github.event.inputs.version_bump != 'no-bump'
@@ -140,11 +140,11 @@ jobs:
             git config user.email "github-actions@github.com"
             git add package.json jsr.jsonc pnpm-lock.yaml CHANGELOG.md README.md
             git commit -m "chore: bump version to ${{ steps.next_version.outputs.version }}"
-            git push origin ${{ github.ref_name }}
+            git push origin "${{ github.ref_name }}"
           else
             echo "Skipping commit (no-bump selected)"
           fi
-          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Create Draft Release
         id: create_draft_release

@@ -44,7 +44,7 @@ jobs:
           path: dist/
       - name: Install @js-temporal/polyfill
         run: |
-          cd $(mktemp -d)
+          cd "$(mktemp -d)"
           npm install @js-temporal/polyfill
           cp -r node_modules "$GITHUB_WORKSPACE"
       - name: Smoke test (comprehensive)
@@ -85,7 +85,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [16,18, 20, 22, 24, 26]
+        node-version: [16, 18, 20, 22, 24, 26]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -189,10 +189,12 @@ jobs:
       - name: Write summary
         shell: bash
         run: |
-          echo "## TOML Smoke Tests (toml-patch parse/stringify/patch)" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Mode | 16 | 18 | 20 | 22 | 24 | 26 |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|------|----|----|----|----|----|----|" >> "$GITHUB_STEP_SUMMARY"
+          {
+            echo "## TOML Smoke Tests (toml-patch parse/stringify/patch)"
+            echo ""
+            echo "| Mode | 16 | 18 | 20 | 22 | 24 | 26 |"
+            echo "|------|----|----|----|----|----|----|"
+          } >> "$GITHUB_STEP_SUMMARY"
           TOML_FAILED=""
           for label in polyfill harmony native; do
             echo -n "| $label |" >> "$GITHUB_STEP_SUMMARY"
@@ -212,12 +214,13 @@ jobs:
             done
             echo "" >> "$GITHUB_STEP_SUMMARY"
           done
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "## General Temporal Compat (full API surface)" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Mode | 16 | 18 | 20 | 22 | 24 | 26 |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|------|----|----|----|----|----|----|" >> "$GITHUB_STEP_SUMMARY"
-          GEN_FAILED=""
+          {
+            echo ""
+            echo "## General Temporal Compat (full API surface)"
+            echo ""
+            echo "| Mode | 16 | 18 | 20 | 22 | 24 | 26 |"
+            echo "|------|----|----|----|----|----|----|"
+          } >> "$GITHUB_STEP_SUMMARY"
           for mode in polyfill harmony native; do
             echo -n "| $mode |" >> "$GITHUB_STEP_SUMMARY"
             for v in 16 18 20 22 24 26; do

@@ -52,7 +52,7 @@ jobs:
         # A rerun may reach this workflow after the dev version was published.
         # The following command will return an error if the dev version does not exist.
         # A successful run indicates that the dev version exists.
-        run: npm view @decimalturn/toml-patch@$(node -p "require('./package.json').version")-dev version
+        run: npm view "@decimalturn/toml-patch@$(node -p "require('./package.json').version")-dev" version
         continue-on-error: true
 
       - name: Prepare dev package
@@ -68,7 +68,7 @@ jobs:
         id: lite-package-exists
         if: steps.build.outcome == 'success'
         # A rerun may reach this workflow after the lite version was published.
-        run: npm view @decimalturn/toml-patch@$(node -p "require('./package.json').version")-lite version
+        run: npm view "@decimalturn/toml-patch@$(node -p "require('./package.json').version")-lite" version
         continue-on-error: true
 
       - name: Prepare and test lite package
