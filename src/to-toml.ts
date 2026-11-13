@@ -237,6 +237,48 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
 }
 
 /**
+ * The source ranges the cursor emitter copied verbatim. Every emitted node asks whether one already
+ * covers it, so a linear scan made patching quadratic in document size. Ranges arrive in source
+ * order, which allows a binary search over their starts with a running maximum of their ends; a
+ * range out of order falls back to scanning that source's list.
+ */
+function createCopiedRanges() {
+  const bySource = new Map<string, { starts: number[]; maxEnds: number[]; ranges: Array<[number, number]>; ordered: boolean }>();
+  return {
+    add(source: string, start: number, end: number): void {
+      let entry = bySource.get(source);
+      if (!entry) bySource.set(source, entry = { starts: [], maxEnds: [], ranges: [], ordered: true });
+      entry.ranges.push([start, end]);
+      const last = entry.starts.length - 1;
+      if (entry.ordered && (last < 0 || start >= entry.starts[last])) {
+        entry.starts.push(start);
+        entry.maxEnds.push(last < 0 ? end : Math.max(entry.maxEnds[last], end));
+      } else {
+        entry.ordered = false;
+      }
+    },
+    covers(source: string, start: number, end: number): boolean {
+      const entry = bySource.get(source);
+      if (!entry) return false;
+      if (!entry.ordered) return entry.ranges.some(([s, e]) => s <= start && e >= end);
+      let lo = 0;
+      let hi = entry.starts.length - 1;
+      let found = -1;
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        if (entry.starts[mid] <= start) {
+          found = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+      return found >= 0 && entry.maxEnds[found] >= end;
+    }
+  };
+}
+
+/**
  * Source-aware emitter used while CST ranges replace coordinate painting.
  * Clean nodes copy their original text. Dirty nodes emit in structural order,
  * so a stale coordinate can add whitespace but cannot overwrite later text.
@@ -246,7 +288,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
     ? Array.from(cst as Iterable<TreeNode>)
     : [cst as unknown as TreeNode];
   const chunks: string[] = [];
-  const copiedRanges: Array<{ source: string; start: number; end: number }> = [];
+  const copiedRanges = createCopiedRanges();
   const hostedComments: Comment[] = [];
   const consumedComments = new WeakSet<Comment>();
   let line = 1;
@@ -530,9 +572,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
   const emitNode = (node: TreeNode, place = true): void => {
     if (node.type === NodeType.Comment && consumedComments.has(node as Comment)) return;
     const source = getNodeSource(node);
-    if (source !== undefined && node.range && copiedRanges.some(copied =>
-      copied.source === source && copied.start <= node.range![0] && copied.end >= node.range![1]
-    )) {
+    if (source !== undefined && node.range && copiedRanges.covers(source, node.range[0], node.range[1])) {
       return;
     }
     if (canCopyWholeNode(node) && sourceSubtreeReusable(node) && node.range && source !== undefined) {
@@ -541,7 +581,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
       if (expectedLeaf === undefined || expectedLeaf === slice) {
         if (place) advanceTo(node.loc.start.line, node.loc.start.column);
         append(slice);
-        copiedRanges.push({ source, start: node.range[0], end: node.range[1] });
+        copiedRanges.add(source, node.range[0], node.range[1]);
         return;
       }
     }
