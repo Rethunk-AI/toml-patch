@@ -288,7 +288,15 @@ describe('ParseError messages', () => {
   test('should show correct error for invalid second', () => {
     expect(() => {
       Array.from(parseTOML('a = 12:00:61'));
-    }).toThrow(/second must be 00-60/);
+    }).toThrow(/second must be 00-59/);
+  });
+
+  // Neither a JavaScript Date nor Temporal can hold a leap second; accepting one yields an
+  // Invalid Date that stringifies as NaN:NaN:NaN.
+  test.each(['a = 23:59:60', 'a = 2016-12-31T23:59:60', 'a = 2016-12-31T23:59:60Z'])('rejects a leap second: %s', src => {
+    expect(() => {
+      Array.from(parseTOML(src));
+    }).toThrow(/second must be 00-59/);
   });
 
   test('should show correct error for multiline string as table key', () => {

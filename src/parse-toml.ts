@@ -183,8 +183,9 @@ function validateTimeRange(
   }
   if (second !== undefined) {
     const s = parseInt(second, 10);
-    if (s < 0 || s > 60) {
-      throw new ParseError(input, loc, `"${raw}": second must be 00-60`);
+    // RFC 3339 allows a leap second (60), but neither Date nor Temporal can represent one.
+    if (s < 0 || s > 59) {
+      throw new ParseError(input, loc, `"${raw}": second must be 00-59`);
     }
   }
 }
