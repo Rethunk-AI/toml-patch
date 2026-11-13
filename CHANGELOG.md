@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- CI: run the toml-test binary at the same commit as `submodules/toml-test` (`9eef1b9`) instead of `v2.1.0`.
+
 ### Fixed
 
 - Patching: adding a new array of tables writes `[[key]]` sections instead of throwing `Node not found`.
@@ -107,7 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Build: Ship a separate unbundled, unminified development build with source maps, published under the `dev` npm dist-tag for debugging and downstream tree-shaking. 
+- Build: Ship a separate unbundled, unminified development build with source maps, published under the `dev` npm dist-tag for debugging and downstream tree-shaking.
 - Formatting: add `indentWidth` for controlling generated structural indentation. ([#291])
 - Formatting: add `multilineTable` and `multilineArray` for controlling generated inline container layout. ([#298])
 
@@ -150,6 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Patching: fix `updateOrder` handling for dotted keys and inline-table members while preserving comments ([#292])
 
 ### Changed
+
 - Improve stringification performance ([#280])
 
 ## [3.0.2] - 2026-08-09
@@ -223,8 +228,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.1] - 2026-07-19
 
 ### Fixed
-- Patching: prevent error during implicit intermediate key/table removal for dotted table keys
 
+- Patching: prevent error during implicit intermediate key/table removal for dotted table keys
 
 ## [2.0.0] - 2026-05-31
 
@@ -277,6 +282,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.0] - 2026-04-15
 
 ### Added
+
 - Patching: Preserve preferred escape sequence representation in basic strings ([#131])
 - Parsing: Add support for raw UTF-8 bytes (`Uint8Array`/`Buffer`) as input for `parse()` and `TomlDocument` ([#153]).
 - Parsing: Add parsing options for `integersAsBigInt` modes (`'asNeeded'`, `true`, `false`) with `'asNeeded'` as default ([#153]).
@@ -284,6 +290,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Parsing: Add support for rejection of invalid UTF-8 encoding as specified in `toml-test` ([#153]).
 
 ### Fixed
+
 - Patching: Editing a multiline basic string that uses a line ending backslash now preserves the original line-break structure and indentation. When the new value cannot be faithfully represented with a line ending backslash (e.g., values with leading or trailing whitespace), the format falls back to a regular multiline basic string to preserve content integrity ([#131]).
 - Parsing: Preserve full integer precision by returning `BigInt` for values outside the JS safe integer range. Fallback to `Number` when integer cannot be parsed as a `BigInt` ([#153] & [#158]).
 - Patching: Fixed mixed line endings bugs ([#131]).
@@ -293,6 +300,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.7] - 2026-04-08
 
 ### Fixed
+
 - Stringifying: `undefined` values in objects are now silently ignored, matching `JSON.stringify` behavior ([#148]).
 - Patching: Setting a key to `undefined` now correctly removes it, including in nested tables and inline tables ([#148]).
 - Patching: Deleting a key from an inline table nested inside an inline array (e.g. `items = [{ name = "x", color = "y" }]`) now works correctly ([#148]).
@@ -300,15 +308,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.6] - 2026-04-06
 
 ### Fixed
+
 - Patching: Support patching multiline inline tables ([#127]).
 - Styling: Respect `inlineTableStart` inside Table Arrays (ie. Array of Tables) ([#144]).
 
 ## [1.0.5] - 2026-03-17
 
 ### Fixed
+
 - Patching: Adding keys to nested inline tables (e.g. `config = { server = { host = "localhost" } }`) now works correctly
 
 ### Changed
+
 - Remove circular dependency between `toml-format` and `generate` modules ([#118])
 - Reduce bundle size by deduplicating internal parsing and date-formatting helpers, implementing schema-based validation and shortening error messages ([#122])
 - Improve internal representation handling for faster write performance (~3–4% speedup in benchmarks) by fixing inconsistencies in how positions are tracked internally ([#125])
@@ -316,11 +327,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.2] - 2026-02-14
 
 ### Changed
+
 - Improve stringification performance ([#106])
 
 ## [1.0.1] - 2026-02-14
 
 ### Changed
+
 - Improve parsing and conversion performance ([#105])
 - Better benchmarking ([#104])
   - Migrate benchmarks from CommonJS to ESM modules
@@ -329,11 +342,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add CLI filters for benchmarks (`--package`, `--file`, `--example`)
 
 ### Added
+
 - Profiling support via `npm run profile` ([#105])
 
 ## [1.0.0] - 2026-02-12
 
 ### Changed
+
 - **BREAKING**: Migrate to ESM-only distribution, removing CommonJS and UMD builds ([#100])
   - Package.json now declares `"type": "module"` and uses a modern `exports` field
   - Single ESM build: `dist/toml-patch.js`
@@ -342,51 +357,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Node.js 22.12.0+/23.3.0+ can directly `require()` this ESM package
   - Users on older Node.js versions should use dynamic `import()` or stay on v0.x
 
-
 ## [0.7.0] - 2026-02-08
 
 ### Fixed
+
 - Per official [toml-test](https://github.com/toml-lang/toml-test), return error for invalid TOML inputs (keys, strings, inline tables, tables, date/time, control characters, and newline handling) except for encoding issues ([#94]).
 
 ## [0.6.0] - 2026-02-01
 
 ### Added
+
 - TOML v1.1 support
 
 ## [0.5.2] - 2026-01-19
 
-### Fixed 
+### Fixed
+
 - Remove circular reference warning ([#90])
 
 ## [0.5.1] - 2026-01-18
 
 ### Added
+
 - Add CHANGELOG.md
 
 ### Fixed
+
 - Fix multiline string handling when patching ([#87])
 - Fix LocalTime timezone parsing issue (2dea07ffd8377ad2aa30678e7025dcbe6753a8e9)
 
 ## [0.5.0] - 2025-12-26
 
 ### Added
+
 - Add `truncateZeroTimeInDates` formatting option for date serialization ([#86])
 
 ### Changed
+
 - Update dependency dedent to v1.7.1
 
 ## [0.4.1] - 2025-12-25
 
 ### Added
+
 - Introduce `TomlDocument` class ([#66])
 - Add `TomlFormat` class ([#77])
 - Better Inline vs Multiline Tables formatting ([#79])
 - Handle TOML date formats when patching ([#82])
 
 ### Fixed
+
 - Dates will now preserve their formatting when patched
 
 ### Changed
+
 - Updated submodules/toml-test digest to b54f9ff
 - Update actions/checkout action to v6
 - Update actions/upload-artifact action to v6
@@ -401,6 +425,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.8] - 2025-10-25
 
 ### Fixed
+
 - Add roundtrip tests and fix related issues ([#64])
   - Ensure trailing end-of-line (EOL) preservation at the end-of-file (ie. if the original TOML doesn't have any EOL at EOF, don't add one and if there's more than one include them)
   - Fix issues with float values (`Infinity`, `-Infinity`, `NaN`, `-0`)
@@ -410,9 +435,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix regex for newline matching
 
 ### Security
+
 - Add Socket Free Firewall ([#53])
 
 ### Changed
+
 - Updated submodules/toml-test digest to 1d35870
 - Update actions/upload-artifact action to v5
 - Updated rollup to versions up to v4.52.5
@@ -426,29 +453,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated socketdev/action to v1.2.0
 
 ### Other
+
 - Expand benchmarks ([#61])
 
 ## [0.3.7] - 2025-08-20
 
 ### Added
-- Package is now available on jsr.io: https://jsr.io/@decimalturn/toml-patch
+
+- Package is now available on jsr.io: <https://jsr.io/@decimalturn/toml-patch>
 
 ### Changed
+
 - Documentation and package description update
 
 ## [0.3.3] - 2025-05-10
 
 ### Fixed
+
 - Handle key-value vs inline-item mixup ([#4])
 
 ## [0.3.2] - 2025-04-13
 
 ### Fixed
+
 - Fix replacement from Inline-Table to String Value ([#3])
 
 ## [0.3.1] - 2025-04-12
 
 ### Fixed
+
 - Fix inline-table element deletion ([#1])
 - Fix inline-table edition ([#2])
 
@@ -457,17 +490,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 This first forked version from [timhall/toml-patch](https://github.com/timhall/toml-patch):
 
 ### Added
-- Now available from npm: https://www.npmjs.com/package/@decimalturn/toml-patch
+
+- Now available from npm: <https://www.npmjs.com/package/@decimalturn/toml-patch>
 
 ### Fixed
+
 - Fix [timhall/toml-patch#27](https://github.com/timhall/toml-patch/issues/27)
 - Fix [timhall/toml-patch#25](https://github.com/timhall/toml-patch/issues/25)
 - Fix [timhall/toml-patch#10](https://github.com/timhall/toml-patch/issues/10)
 
 ### Changed
-- Updates dependencies
-- Ensures all latest spec tests from https://github.com/iarna/toml-spec-tests are passing (1880b1a)
 
+- Updates dependencies
+- Ensures all latest spec tests from <https://github.com/iarna/toml-spec-tests> are passing (1880b1a)
 
 [#1]: https://github.com/DecimalTurn/toml-patch/pull/1
 [#2]: https://github.com/DecimalTurn/toml-patch/pull/2

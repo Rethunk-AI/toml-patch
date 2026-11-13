@@ -1,5 +1,5 @@
 name: Test and Build
-on: 
+on:
   push:
     branches:
       - latest
@@ -23,69 +23,69 @@ jobs:
             benchmark: true
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v7
-      with:
-        submodules: true
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          submodules: true
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v7
-      with:
-        node-version: ${{ matrix.node-version }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v6
-      with:
-        run_install: false
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          run_install: false
 
-    # Protection Against Supply Chain Attacks
-    - uses: socketdev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
-      with:
-        mode: firewall
-        firewall-version: latest
+      # Protection Against Supply Chain Attacks
+      - uses: socketdev/action@ba6de6cc0565af1f42295590380973573297e31f # v1.3.2
+        with:
+          mode: firewall
+          firewall-version: latest
 
-    - name: Install
-      run: sfw pnpm install --frozen-lockfile
-      env:
-        CI: true
+      - name: Install
+        run: sfw pnpm install --frozen-lockfile
+        env:
+          CI: true
 
-    - name: Typecheck
-      run: pnpm run typecheck
+      - name: Typecheck
+        run: pnpm run typecheck
 
-    - name: Lint
-      run: pnpm run lint
+      - name: Lint
+        run: pnpm run lint
 
-    - name: Build
-      run: pnpm run build
+      - name: Build
+        run: pnpm run build
 
-    - name: Test dev package
-      run: pnpm run test:dev
+      - name: Test dev package
+        run: pnpm run test:dev
 
-    - name: Install Playwright browsers
-      run: pnpm run playwright:install
+      - name: Install Playwright browsers
+        run: pnpm run playwright:install
 
-    - name: Test
-      run: pnpm run test:all
+      - name: Test
+        run: pnpm run test:all
 
-    - name: Fuzz test
-      run: pnpm run fuzz1
+      - name: Fuzz test
+        run: pnpm run fuzz1
 
-    - name: Specs
-      run: pnpm run specs
+      - name: Specs
+        run: pnpm run specs
 
-    - name: Setup Go
-      uses: actions/setup-go@v7
-      with:
-        go-version: stable
+      - name: Setup Go
+        uses: actions/setup-go@v7
+        with:
+          go-version: stable
 
-    - name: Install toml-test
-      run: go install github.com/toml-lang/toml-test/v2/cmd/toml-test@v2.1.0
+      - name: Install toml-test
+        run: go install github.com/toml-lang/toml-test/v2/cmd/toml-test@9eef1b959e0449d41a31d4e4e0a839faee534b36
 
-    - name: Go Test (toml-test)
-      run: pnpm run test:go
+      - name: Go Test (toml-test)
+        run: pnpm run test:go
 
-    - name: Create build artifacts
-      uses: actions/upload-artifact@v7
-      with: 
-        path: dist/
-        name: dist-${{ matrix.node-version }}
+      - name: Create build artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          path: dist/
+          name: dist-${{ matrix.node-version }}

@@ -5,7 +5,7 @@
 # Requires the toml-test binary: https://github.com/toml-lang/toml-test
 #
 # Install (Go required):
-#   go install github.com/toml-lang/toml-test/v2/cmd/toml-test@latest
+#   go install github.com/toml-lang/toml-test/v2/cmd/toml-test@9eef1b959e0449d41a31d4e4e0a839faee534b36
 #
 # Or download a pre-built binary from:
 #   https://github.com/toml-lang/toml-test/releases
