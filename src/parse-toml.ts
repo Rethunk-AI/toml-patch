@@ -360,6 +360,17 @@ function comment(cursor: Cursor<Token>): Comment {
   };
 }
 
+/** The dot and the part after it must exist and sit on the key's line: TOML whitespace excludes newlines. */
+function requireSameLineKeyPart(cursor: Cursor<Token>, dot: Token, line: number, input: string): void {
+  if (dot.loc.start.line !== line || cursor.done || cursor.value!.loc.start.line !== line) {
+    throw new ParseError(
+      input,
+      cursor.done ? dot.loc.end : cursor.value!.loc.start,
+      cursor.done ? `Expected a key after "."` : `A dotted key must be on one line`
+    );
+  }
+}
+
 function table(cursor: Cursor<Token>, input: string): Table | TableArray {
   // Table or TableArray
   //
@@ -473,6 +484,7 @@ function table(cursor: Cursor<Token>, input: string): Table | TableArray {
     const dot = cursor.value!;
 
     cursor.next();
+    requireSameLineKeyPart(cursor, dot, key.loc!.start.line, input);
     
     // Validate each part of a dotted table key
     const partRaw = cursor.value!.raw;
@@ -1228,6 +1240,7 @@ function keyValue(cursor: Cursor<Token>, input: string): Array<KeyValue | Commen
     cursor.next();
     const dot = cursor.value!;
     cursor.next();
+    requireSameLineKeyPart(cursor, dot, key.loc.end.line, input);
 
     // Validate each part of a dotted key
     const partRaw = cursor.value!.raw;

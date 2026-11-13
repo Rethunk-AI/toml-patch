@@ -268,3 +268,23 @@ describe('a float is one unbroken token', () => {
     expect(() => parse(src)).toThrow(ParseError);
   });
 });
+
+describe('a dotted key stays on one line', () => {
+  test.each([
+    ['a.\nb = 1\n'],
+    ['a\n.b = 1\n'],
+    ['a.'],
+    ['nan.'],
+    ['[a.\nb]\n'],
+    ['[a\n.b]\n'],
+    ['[[a.\nb]]\n'],
+    ['[a.'],
+    ['x = { a.\nb = 1 }\n'],
+  ])('rejects %j', src => {
+    expect(() => parse(src)).toThrow(ParseError);
+  });
+
+  test('allows whitespace around the dots', () => {
+    expect(parse('a . b = 1\n[ c . d ]\ne = 2\n')).toEqual({ a: { b: 1 }, c: { d: { e: 2 } } });
+  });
+});
