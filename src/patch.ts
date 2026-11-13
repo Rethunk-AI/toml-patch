@@ -1910,6 +1910,12 @@ function applyChanges(
         }
       }
 
+      // Promoting comments splices Document items, so it must run before the insertion index is
+      // resolved: afterwards the index would point before the last entry (comment between entries).
+      if (is_table_array && !isInteger(last(parent_path))) {
+        normalizeAotEntryComments(original, true);
+      }
+
       // Determine the parent node where the new child will be inserted
       let parent: TreeNode;
       if (isTable(child)) {
@@ -2038,10 +2044,6 @@ function applyChanges(
         : undefined;
 
       if (isTableArray(parent) || isInlineArray(parent) || isDocument(parent)) {
-        if (is_table_array && !isInteger(last(parent_path))) {
-          normalizeAotEntryComments(original, true);
-        }
-
         // Special handling for InlineArray: preserve original trailing comma format
         if (isInlineArray(parent)) {
           const originalHadTrailingCommas = trailingCommaForAddedItem(
