@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Patching: adding a new array of tables writes `[[key]]` sections instead of throwing `Node not found`.
+- Patching: an entry appended to an array of tables lands after the last entry when a comment sits between entries, instead of before it (which reordered the array).
+- Patching: whitespace inside table header brackets (`[ a ]`, `[[ a ]]`) survives every patch.
+- Parsing: text after a closing quote (`a = "x"-`) is an error instead of becoming part of the string.
+- Parsing: a float or fractional second split by whitespace or a newline (`1. 5`, `1.\n5`) is an error.
+- Parsing: a dotted key split across lines (`a.\nb = 1`, `[a.\nb]`) or cut off at a dot is a parse error instead of a `TypeError` or `RangeError`.
+- Parsing: a fractional part on a time without seconds (`09:36.33`) and a leap second (`23:59:60`) are errors instead of an Invalid Date that stringified as `NaN`.
+- Parsing: a date and time join only across a single space, not a tab or a run of spaces.
+
+### Performance
+
+- Patching: looking up copied source ranges is a binary search, so one edit in a 40,000-key document takes 0.5 s instead of 7.4 s.
+
 ## [3.3.2] - 2026-10-31
 
 ### Fixed
