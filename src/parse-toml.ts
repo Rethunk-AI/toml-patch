@@ -834,8 +834,9 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
   // First, ensure the overall shape is valid (anchors matter).
   // This catches cases where regexes below might partially match a prefix and ignore trailing junk.
   const validDateTimePattern =
-    /^\d{4}-\d{2}-\d{2}(?:[Tt ]\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?(?:[Zz]|[+-]\d{2}:\d{2})?)?$/;
-  const validTimePattern = /^\d{2}:\d{2}(?::\d{2})?(?:\.\d+)?$/;
+    /^\d{4}-\d{2}-\d{2}(?:[Tt ]\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:[Zz]|[+-]\d{2}:\d{2})?)?$/;
+  // A fraction belongs to the seconds (TOML partial-time), so HH:MM.ff is invalid.
+  const validTimePattern = /^\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?$/;
 
   if (!validDateTimePattern.test(raw) && !validTimePattern.test(raw)) {
     // Date cannot end with trailing T without a time component

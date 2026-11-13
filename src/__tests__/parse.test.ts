@@ -288,3 +288,14 @@ describe('a dotted key stays on one line', () => {
     expect(parse('a . b = 1\n[ c . d ]\ne = 2\n')).toEqual({ a: { b: 1 }, c: { d: { e: 2 } } });
   });
 });
+
+describe('fractional seconds need seconds', () => {
+  test.each([['a = 09:36.33\n'], ['a = 2020-01-01T09:36.33\n'], ['a = 2020-01-01T09:36.33Z\n'], ['a = 2020-01-01 09:36.5+01:00\n']])('rejects %j', src => {
+    expect(() => parse(src)).toThrow(ParseError);
+  });
+
+  test('accepts a time without seconds and seconds with a fraction', () => {
+    const { a, b } = parse('a = 09:36\nb = 09:36:00.5\n');
+    expect([Number.isNaN(a.getTime()), Number.isNaN(b.getTime())]).toEqual([false, false]);
+  });
+});
