@@ -1116,3 +1116,24 @@ describe('nested multiline inline tables', () => {
 
 });
 
+
+describe('untouched lines stay byte-identical', () => {
+  test('tabs and trailing whitespace survive an unrelated patch', () => {
+    const src = [
+      '[server]',
+      '\thost = "a"',
+      '\t\tport = 1',
+      '# note with trailing space   ',
+      '\tname = "x" \t# tab before comment\t',
+      '',
+      '[other]',
+      'k = 1',
+    ].join('\n');
+    const obj = parse(src) as any;
+    obj.other.k = 2;
+    const result = patch(src, obj);
+    const expected = src.split('\n');
+    expected[7] = 'k = 2';
+    expect(result.split('\n')).toEqual(expected);
+  });
+});
