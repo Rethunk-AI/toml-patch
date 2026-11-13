@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { parse, patch } from '../index';
+import ParseError from '../parse-error';
 
 const noop: Record<string, string> = {
   cargo: `# c\n[package]\nname = "x"  # n\nversion = '0.1.0'\n\n[dependencies]\nserde = { version = "1", features = ["derive"] }\ntokio = {version="1"}\n\n[[bin]]\nname = "a"\n\n[[bin]]\nname = "b"\n`,
@@ -40,9 +41,9 @@ describe('edits touch only the edited key', () => {
 });
 
 describe('hostile input', () => {
-  test('deep nesting throws a catchable error instead of crashing', () => {
+  test('deep nesting throws a catchable error as a ParseError', () => {
     const d = 200000;
-    expect(() => parse('a = ' + '['.repeat(d) + ']'.repeat(d) + '\n')).toThrow(RangeError);
+    expect(() => parse('a = ' + '['.repeat(d) + ']'.repeat(d) + '\n')).toThrow(ParseError);
   });
   test('a 5 MB string parses and patches', () => {
     const src = `a = "${'x'.repeat(5_000_000)}"\n`;

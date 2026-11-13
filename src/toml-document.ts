@@ -1,3 +1,4 @@
+import { rethrowStackOverflow } from './parse-error';
 import parseTOML, { continueParsingTOML } from './parse-toml';
 import toJS from './to-js';
 import { TomlFormat } from './toml-format';
@@ -38,7 +39,7 @@ export class TomlDocument {
     const tomlString = stripLeadingBom(sourceString);
 
     this._currentTomlString = tomlString;
-    this._cst = Array.from(parseTOML(tomlString));
+    this._cst = rethrowStackOverflow(() => Array.from(parseTOML(tomlString)));
     this._integersAsBigInt = options?.integersAsBigInt ?? 'asNeeded';
     this._temporal = options?.temporal ?? false;
     // Auto-detect formatting preferences from the original TOML string

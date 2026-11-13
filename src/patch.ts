@@ -1,4 +1,5 @@
 import parseTOML from './parse-toml';
+import { rethrowStackOverflow } from './parse-error';
 import parseJS from './parse-js';
 import toJS from './to-js';
 import toTOML, { toTOMLCursor } from './to-toml';
@@ -85,7 +86,7 @@ export default function patch(existing: string, updated: any, format?: Partial<T
   // separate pass over the input.
   const newlineState = createNewlineScanState();
   const existingToml = stripLeadingBom(existing);
-  const existing_cst = Array.from(parseTOML(existingToml, newlineState));
+  const existing_cst = rethrowStackOverflow(() => Array.from(parseTOML(existingToml, newlineState)));
   attachSources(existing_cst, existingToml);
 
   // Auto-detect formatting preferences from the existing TOML string for fallback

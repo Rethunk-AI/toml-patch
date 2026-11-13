@@ -6,6 +6,7 @@ import { TomlFormat, resolveTomlFormat } from './toml-format';
 import type { ParseOptions } from './parse-options';
 import { decodeUtf8Bytes, stripLeadingBom, UTF8_BOM } from './decode-utf8';
 import { TomlDocument } from './toml-document';
+import { rethrowStackOverflow } from './parse-error';
 
 export type { IntegersAsBigInt, ParseOptions } from './parse-options';
 
@@ -74,10 +75,10 @@ export function parse(value: string | Uint8Array, options?: ParseOptions): any {
     ? value
     : decodeUtf8Bytes(value);
   const tomlString = stripLeadingBom(rawString);
-  return toJS(parseTOML(tomlString), tomlString, {
+  return rethrowStackOverflow(() => toJS(parseTOML(tomlString), tomlString, {
     integersAsBigInt: options?.integersAsBigInt ?? 'asNeeded',
     temporal: options?.temporal ?? false
-  });
+  }));
 }
 
 /**
