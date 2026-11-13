@@ -666,11 +666,14 @@ function datetime(cursor: Cursor<Token>, input: string): DateTime {
     const start = loc.start;
 
     cursor.next();
+    requireAdjacent(loc, cursor.value!.loc, input, 'DateTime');
 
     if (cursor.peek().done || cursor.peek().value!.type !== TokenType.Literal) {
       throw new ParseError(input, cursor.value!.loc.end, `Expected fractional value for DateTime`);
     }
+    const dot = cursor.value!.loc;
     cursor.next();
+    requireAdjacent(dot, cursor.value!.loc, input, 'DateTime');
 
     loc = { start, end: cursor.value!.loc.end };
     raw += `.${cursor.value!.raw}`;
@@ -932,6 +935,13 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
   }
 }
 
+/** A number's parts arrive as separate tokens; whitespace or a newline between them is invalid. */
+function requireAdjacent(prev: Location, next: Location, input: string, what: string): void {
+  if (next.start.line !== prev.end.line || next.start.column !== prev.end.column) {
+    throw new ParseError(input, next.start, `${what} cannot contain whitespace`);
+  }
+}
+
 function float(cursor: Cursor<Token>, input: string): Float {
   let loc = cursor.value!.loc;
   let raw = cursor.value!.raw;
@@ -1001,11 +1011,14 @@ function float(cursor: Cursor<Token>, input: string): Float {
     // -> Don't have to handle "4." (i.e. nothing behind decimal place)
 
     cursor.next();
+    requireAdjacent(loc, cursor.value!.loc, input, 'Float');
 
     if (cursor.peek().done || cursor.peek().value!.type !== TokenType.Literal) {
       throw new ParseError(input, cursor.value!.loc.end, `Expected fraction value for Float`);
     }
+    const dot = cursor.value!.loc;
     cursor.next();
+    requireAdjacent(dot, cursor.value!.loc, input, 'Float');
 
     raw += `.${cursor.value!.raw}`;
     loc = { start, end: cursor.value!.loc.end };

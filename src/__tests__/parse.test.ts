@@ -254,3 +254,17 @@ describe('a quoted string ends at its closing quote', () => {
     expect(parse('a = "q\\"x\\\\"\nb = \'\'\nc = ""\n')).toEqual({ a: 'q"x\\', b: '', c: '' });
   });
 });
+
+describe('a float is one unbroken token', () => {
+  test.each([
+    ['a = 1. 5\n'],
+    ['a = 1 .5\n'],
+    ['a = 1.\n5\n'],
+    ['a = 1\n.5\n'],
+    ['a = [1.\n5]\n'],
+    ['a = 07:32:00 .5\n'],
+    ['a = 1979-05-27T07:32:00\n.5\n'],
+  ])('rejects a split number: %j', src => {
+    expect(() => parse(src)).toThrow(ParseError);
+  });
+});
