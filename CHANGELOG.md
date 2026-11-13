@@ -7,9 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.2] - 2026-10-31
+
 ### Fixed
 
-- Patching: removing one `[[table]]` entry no longer deletes the sub-tables of the other entries. Dropping the second `[[route]]` from a document whose entries each own a `[route.args]` section used to strip `[route.args]` from every remaining entry; only the removed entry's own sub-tables are removed now: those between its header and the next entry of the same array or of an ancestor array, so removing a `[[group.route]]` entry also leaves the next `[[group]]`'s `[group.route.args]` alone.
+- Patching: remove descendant table headers when replacing a dotted-key table with a scalar, including inside array-of-tables entries. ([#333])
+- Patching: preserve nested table and array-of-tables formatting when rebuilding array-of-tables entries and correctly handle appending primitive values to mixed arrays. ([#328])
+- Parsing: reject dotted assignments that traverse inherited properties of date values such as `.toISOString()`. ([#332])
+- Patching: reject array-of-tables headers that conflict with an implicit parent table. ([#332])
+- Patching: prevent applying changes in the wrong place for nested table-array entries when removing sub-tables, resolving nested AOT paths, materialising emptied arrays, replacing values inside an entry and appending new entries. ([#329])
+- Parsing: accept dotted keys that extend a sub-table path an earlier `[[array]]` entry defined with a header. ([#329])
+- Patching: replacing a value two or more keys below its nearest `[table]` header no longer produces invalid TOML when a sibling header still extends the table in between. ([#329])
+- Patching: removing a table no longer deletes the comment directly above the next header. ([#329])
+- Patching: a new root key-value is inserted above the comment that introduces the first section, instead of between that comment and its header. ([#329])
+
+### Changed
+
+- Patching: emptying a dotted-key parent now leaves  an empty inline table instead of an empty table with header. ([#329])
+
+## [3.3.1] - 2026-10-17
+
+### Fixed
+
+- Patching: removing one `[[table]]` entry no longer deletes the sub-tables of the other entries. ([#321])
 
 ## [3.3.0] - 2026-09-27
 
@@ -505,5 +525,10 @@ This first forked version from [timhall/toml-patch](https://github.com/timhall/t
 [#313]: https://github.com/DecimalTurn/toml-patch/pull/313
 [#314]: https://github.com/DecimalTurn/toml-patch/pull/314
 [#316]: https://github.com/DecimalTurn/toml-patch/pull/316
+[#321]: https://github.com/DecimalTurn/toml-patch/pull/321
+[#328]: https://github.com/DecimalTurn/toml-patch/pull/328
+[#329]: https://github.com/DecimalTurn/toml-patch/pull/329
+[#332]: https://github.com/DecimalTurn/toml-patch/pull/332
+[#333]: https://github.com/DecimalTurn/toml-patch/pull/333
 [0e66e68]: https://github.com/DecimalTurn/toml-patch/commit/0e66e68cbf42a07bc44445e46c3ea7bea97f95c1
 [f97d571]: https://github.com/DecimalTurn/toml-patch/commit/f97d57194952b6603f0fcd686c32d3ae52a2c903

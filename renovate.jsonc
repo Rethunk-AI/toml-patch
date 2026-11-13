@@ -9,6 +9,8 @@
     "enabled": true
   },
 
+  "dependencyDashboardTitle": "DevDependencies Dashboard",
+
   // https://docs.renovatebot.com/presets-group/#groupallnonmajor
   "packageRules": [
     {
