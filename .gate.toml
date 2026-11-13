@@ -1,0 +1,4 @@
+# publish.yml runs `publish:jsr`, which needs registry auth; locally check the same package with a dry run.
+[gates."publish:jsr"]
+run = "pnpm exec jsr publish --dry-run --allow-dirty"
+serial = true
