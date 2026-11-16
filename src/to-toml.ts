@@ -139,12 +139,10 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
     return position;
   };
 
+  // The record call lives inside the switch function rather than in a wrapper:
+  // an extra frame per nesting level is what pushed the deeply nested
+  // toml-test "scaling" fixtures over the stack limit.
   function emitNode(node: TreeNode) {
-    emitNodeBody(node);
-    recordLineTail(node);
-  }
-
-  function emitNodeBody(node: TreeNode) {
     switch (node.type) {
       case NodeType.Document:
         for (let i = 0; i < (node as Document).items.length; i++)
@@ -244,6 +242,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
         throw new Error(`toTOML: Unrecognized node type: ${String(type)}`);
             }
     }
+    recordLineTail(node);
   }
 
   // Handle both Document nodes and bare iterables (document.items)
@@ -728,16 +727,20 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
     }
   };
 
-  const emitNode = (node: TreeNode, place = true): void => {
-    emitNodeBody(node, place);
+  const recordTail = (node: TreeNode): void => {
     const tail = sourceLineTail(node);
     if (tail.length > 0) lineTail = tail;
   };
 
-  const emitNodeBody = (node: TreeNode, place = true): void => {
-    if (node.type === NodeType.Comment && consumedComments.has(node as Comment)) return;
+  // Single function, like the coordinate emitter: one frame per nesting level.
+  const emitNode = (node: TreeNode, place = true): void => {
+    if (node.type === NodeType.Comment && consumedComments.has(node as Comment)) {
+      recordTail(node);
+      return;
+    }
     const source = getNodeSource(node);
     if (source !== undefined && node.range && copiedRanges.covers(source, node.range[0], node.range[1])) {
+      recordTail(node);
       return;
     }
     if (canCopyWholeNode(node) && sourceSubtreeReusable(node) && node.range && source !== undefined) {
@@ -754,6 +757,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
         protectCopiedStrings(node, node.range[0], outputStart, slice.length);
         copiedRanges.add(source, node.range[0], node.range[1]);
         lastCopy = { source, end: node.range[1], chunkCount: chunks.length };
+        recordTail(node);
         return;
       }
     }
@@ -863,6 +867,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
       default:
         throw new Error(`toTOMLCursor: Unrecognized node type: ${String((node as any).type)}`);
     }
+    recordTail(node);
   };
 
   for (const root of roots) emitNode(root);
