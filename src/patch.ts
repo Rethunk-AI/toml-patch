@@ -39,7 +39,7 @@ import {
 } from './cst';
 import diff, { Change, ChangeType, Move, isAdd, isEdit, isRemove, isMove, isRename } from './diff';
 import findByPath, { tryFindByPath, findParent, Path } from './find-by-path';
-import { last, isInteger, arraysEqual, isTemporal, temporalToTomlString, hasTemporal, isObject, stableStringify, isDate, datesEqual } from './utils';
+import { last, isInteger, arraysEqual, isTemporal, temporalToTomlString, hasTemporal, isObject, stableStringify, isDate, datesEqual, isNegativeNan } from './utils';
 import { insert, replace, remove, applyWrites, applyBracketSpacing, hasInlineContainerNeedingTighten, deleteInlineContainerNeedingTighten, shiftNode, recalcContainerEnd, addExitOffset, markDirty, getPendingEnterOffsets, getExitOffsets, setRootIndentWidth, setInlineIndentColumn, perLine } from './writer';
 import { removeMember, moveInlineElement, findHostContainer, resolveGroups } from './comment-ownership';
 import { applyKeyOrderMoves } from './update-order';
@@ -395,12 +395,9 @@ function valuesEqualIterative(left: any, right: any): boolean {
   const pending: Array<[any, any]> = [[left, right]];
   while (pending.length > 0) {
     const [a, b] = pending.pop()!;
-    if (typeof a === 'number' && typeof b === 'number' &&
-        (!Number.isFinite(a) || !Number.isFinite(b))) {
-      return false;
-    }
-    if (typeof a === 'number' && typeof b === 'number' &&
-        Number.isNaN(a) && Number.isNaN(b)) {
+    if (typeof a === 'number' && typeof b === 'number' && Number.isNaN(a) && Number.isNaN(b)) {
+      // Same sign as diff.ts, which turns a sign change into an edit.
+      if (isNegativeNan(a) === isNegativeNan(b)) continue;
       return false;
     }
     if (Object.is(a, b)) continue;
