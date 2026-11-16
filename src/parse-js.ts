@@ -38,7 +38,7 @@ export default function parseJS(
   // Enable stringify fast paths in the writer — no comments, no removals.
   markStringifyRoot(document);
   setRootIndentWidth(document, format.indentWidth);
-  for (const item of walkObject(value, format, depth, parentIsMultiline)) {
+  for (const item of walkObject(value, format, depth, parentIsMultiline, [], new WeakSet())) {
     insert(document, document, item);
   }
   applyWrites(document);
@@ -76,8 +76,10 @@ export default function parseJS(
 function* walkObject(
   object: any,
   format: TomlFormat,
-  depth = 0,
-  parentIsMultiline = false
+  depth: number,
+  parentIsMultiline: boolean,
+  path: Array<string | number>,
+  active: WeakSet<object>
 ): IterableIterator<KeyValue> {
   for (const key of Object.keys(object)) {
     const rawValue = object[key];
@@ -86,7 +88,7 @@ function* walkObject(
     if (value === undefined) continue;
     yield generateKeyValue(
       [key],
-      walkValue(value, format, depth, parentIsMultiline),
+      walkValue(value, format, depth, parentIsMultiline, path.concat(key), active),
       depth > 0 && !parentIsMultiline,
       format.escapeSequenceUpperCase
     );
@@ -128,7 +130,9 @@ function walkValue(
   value: any,
   format: TomlFormat,
   depth: number,
-  parentIsMultiline: boolean
+  parentIsMultiline: boolean,
+  path: Array<string | number>,
+  active: WeakSet<object>
 ): Value {
   const minimumDecimals = format.minimumDecimals ?? 0;
 
@@ -159,18 +163,37 @@ function walkValue(
     return generateDateTime(smolTomlDateToNative(value), format.truncateZeroTimeInDates, format.minimumTimeDecimals ?? 0);
   } else if (isDate(value)) {
     return generateDateTime(value, format.truncateZeroTimeInDates, format.minimumTimeDecimals ?? 0);
-  } else if (Array.isArray(value)) {
-    return walkInlineArray(value, format, depth, parentIsMultiline);
+  } else if (typeof value !== 'object') {
+    throw new TypeError(`Unsupported value type ${typeof value} at ${formatValuePath(path)}`);
+  } else if (active.has(value)) {
+    throw new TypeError(`Cannot stringify a circular structure at ${formatValuePath(path)}`);
   } else {
-    return walkInlineTable(value, format, depth, parentIsMultiline);
+    active.add(value);
+    try {
+      return Array.isArray(value)
+        ? walkInlineArray(value, format, depth, parentIsMultiline, path, active)
+        : walkInlineTable(value, format, depth, parentIsMultiline, path, active);
+    } finally {
+      active.delete(value);
+    }
   }
+}
+
+function formatValuePath(path: Array<string | number>): string {
+  let out = '';
+  for (const segment of path) {
+    out += typeof segment === 'number' ? `[${segment}]` : out ? `.${segment}` : segment;
+  }
+  return out || '(root)';
 }
 
 function walkInlineArray(
   value: Array<any>,
   format: TomlFormat,
   depth: number,
-  parentIsMultiline: boolean
+  parentIsMultiline: boolean,
+  path: Array<string | number>,
+  active: WeakSet<object>
 ): InlineArray {
   const inline_array = generateInlineArray();
   const multiline = !(value.length === 0 && depth > 0) &&
@@ -179,8 +202,8 @@ function walkInlineArray(
   setRootIndentWidth(inline_array, format.indentWidth);
   markStringifyRoot(inline_array);
   if (!multiline) {
-    for (const element of value) {
-      const item = walkValue(element, format, depth + 1, multiline);
+    for (let index = 0; index < value.length; index++) {
+      const item = walkValue(value[index], format, depth + 1, multiline, path.concat(index), active);
       const inline_array_item = generateInlineItem(item);
 
       appendCompactInlineItem(inline_array, inline_array_item, format);
@@ -192,8 +215,8 @@ function walkInlineArray(
     }
     return inline_array;
   }
-  for (const element of value) {
-    const item = walkValue(element, format, depth + 1, multiline);
+  for (let index = 0; index < value.length; index++) {
+    const item = walkValue(value[index], format, depth + 1, multiline, path.concat(index), active);
     const inline_array_item = generateInlineItem(item);
 
     prepareInsertedNestedInlineContainer(inline_array, inline_array_item, format.indentWidth);
@@ -210,10 +233,12 @@ function walkInlineTable(
   value: object,
   format: TomlFormat,
   depth: number,
-  parentIsMultiline: boolean
+  parentIsMultiline: boolean,
+  path: Array<string | number>,
+  active: WeakSet<object>
 ): InlineTable | Value {
   value = toJSON(value);
-  if (!isObject(value)) return walkValue(value, format, depth, parentIsMultiline);
+  if (!isObject(value)) return walkValue(value, format, depth, parentIsMultiline, path, active);
 
   const inline_table = generateInlineTable();
   const multiline = !(Object.keys(value).length === 0 && depth > 0) &&
@@ -222,7 +247,7 @@ function walkInlineTable(
   setRootIndentWidth(inline_table, format.indentWidth);
   markStringifyRoot(inline_table);
   if (!multiline) {
-    for (const item of walkObject(value, format, depth + 1, multiline)) {
+    for (const item of walkObject(value, format, depth + 1, multiline, path, active)) {
       appendCompactInlineItem(inline_table, generateInlineItem(item), format);
     }
     if (inline_table.items.length > 0 && format.trailingComma) {
@@ -232,7 +257,7 @@ function walkInlineTable(
     }
     return inline_table;
   }
-  for (const item of walkObject(value, format, depth + 1, multiline)) {
+  for (const item of walkObject(value, format, depth + 1, multiline, path, active)) {
     const inline_table_item = generateInlineItem(item);
 
     insert(inline_table, inline_table, inline_table_item);

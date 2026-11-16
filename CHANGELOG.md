@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Patching: whitespace inside table header brackets (`[ a ]`, `[[ a ]]`) survives every patch.
 - Patching: trailing tabs and spaces on a line survive when that line is rebuilt, so an untouched line stays byte-identical.
 - Patching: a document holding `nan`, `inf` or an out-of-range float is recognised as unchanged and returned as written instead of being re-emitted.
+- Stringify: a function, symbol or circular object throws a `TypeError` naming the value and its path instead of overflowing the stack.
 - Parsing: text after a closing quote (`a = "x"-`) is an error instead of becoming part of the string.
 - Parsing: a float or fractional second split by whitespace or a newline (`1. 5`, `1.\n5`) is an error.
 - Parsing: a dotted key split across lines (`a.\nb = 1`, `[a.\nb]`) or cut off at a dot is a parse error instead of a `TypeError` or `RangeError`.
