@@ -197,7 +197,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **BREAKING**: Raise minimum supported Node.js version from `>=14` to `>=16`.
-- Patching: introducing explicit comment ownership. Comments describing a key, table, array-of-tables entry or an element inside a multi-line array or inline table now travel with it when removed or reordered via `patch()`, instead of being left behind to describe whatever ends up in that spot. See [docs/CommentOwnership.md](docs/CommentOwnership.md). ([#259])
+- Patching: introducing explicit comment ownership. Comments describing a key, table, array-of-tables entry or an element inside a multi-line array or inline table now travel with it when removed or reordered via `patch()`, instead of being left behind to describe whatever ends up in that spot. See [docs/Comment-Ownership.md](docs/Comment-Ownership.md). ([#259])
 - Improve stringification performance ([0e66e68])
 
 ### Added
