@@ -38,6 +38,7 @@ per-parent counter keeps multiple children of the same parent in the correct
 order.
 
 **Files changed:**
+
 - `src/formatter.ts` — positional insertion of extracted sub-tables in
   `formatNestedTablesMultiline` / `processTableForNestedInlines`.
 - `src/__tests__/patch.fuzz.test.ts` — added `regression for fuzz seed 1024477`.
@@ -57,5 +58,5 @@ must land between `[[tp6]]` entry 0 and entry 1.
 Note: the seed's deterministic `add-array-item` at `I]GdO.1` (a scalar append
 into an AOT) is **skipped** by `fuzzOne`'s AOT-entry guard, so it is not part of
 the actual failing mutation set — `fuzz-investigate.ts` (which does not
-replicate that guard) reports it, but the authoritative `fuzz-run.ts`/`fuzzOne`
+replicate that guard) reports it, but the authoritative `fuzz-run1.ts`/`fuzzOne`
 does not apply it.

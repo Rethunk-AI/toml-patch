@@ -1,7 +1,7 @@
 # Fuzz-hardening fixes: round-trip corruption seeds (60000–80000)
 
 **Status: fixed.** A series of round-trip-corruption bugs surfaced by deterministic fuzz sweeps of
-`patch()` against randomly-generated TOML (harness `local/fuzz-run.ts`, 3 random mutations per seed,
+`patch()` against randomly-generated TOML (harness `scripts/fuzz-run1.ts`, 3 random mutations per seed,
 in 10k-seed windows). Each was distilled to a minimal failing case, pinned with a `test.fails`
 regression in `src/__tests__/patch.test.ts` (or `to-js.test.ts` for the one parser-level bug), then
 fixed — one `test(...)` + `fix(...)` commit pair per seed on branch `dev-fuzz-fixes2`.

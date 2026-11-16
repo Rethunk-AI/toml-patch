@@ -1,58 +1,58 @@
-<img src="assets/toml-patch-logo.png" alt="toml-patch logo" width="120"/>
+<h1 align="center">toml-patch</h1>
 
-# toml-patch
+<div align="center">
+
+<img src="assets/toml-patch-logo.png" alt="toml-patch logo" width="120"/>
 
 [![NPM Version](https://img.shields.io/npm/v/%40decimalturn%2Ftoml-patch?logo=npm&logoColor=white&labelColor=red&color=blue)](https://www.npmjs.com/package/@decimalturn/toml-patch)
 [![JSR Version](https://img.shields.io/jsr/v/%40decimalturn/toml-patch?logo=jsr&color=blue)](https://jsr.io/@decimalturn/toml-patch)
 [![GitHub branch status](https://img.shields.io/github/check-runs/DecimalTurn/toml-patch/latest)](https://github.com/DecimalTurn/toml-patch/actions/workflows/test-and-build.yml)
 
-Patch, parse, and stringify [TOML](https://toml.io/en/) (v1.1.0) while preserving comments, whitespace and formatting.
+</div>
 
-This project started as a fork of the [original toml-patch](https://github.com/timhall/toml-patch) but has since evolved into a standalone project with significant improvements in reliability and features. We've added TOML v1.1 support, introduced new APIs like `TomlDocument` and `TomlFormat` classes, fixed numerous bugs through increase in testing namely with [toml-test](https://github.com/toml-lang/toml-test).
+---
 
-We hope that these improvements can be incorporated upstream one day if the original author returns, but until then, this project is the actively maintained version.
+toml-patch edits [TOML](https://toml.io/en/) 1.1 documents without rewriting lines you did not change. Comments, tabs, trailing whitespace, and line endings on those lines stay as they were.
+
+The published package is `@decimalturn/toml-patch`. It exports `patch`, `parse`, and `stringify`, plus `TomlDocument` for repeated work on one file and `TomlFormat` for stringify and patch options. There are no runtime dependencies. This tree is Rethunk-AI's fork of DecimalTurn/toml-patch, which started as a fork of [timhall/toml-patch](https://github.com/timhall/toml-patch).
+
+## Quick start
+
+```bash
+pnpm add @decimalturn/toml-patch
+```
+
+Install options, the lite dist-tag, browser usage, and how to verify a clone are in [HUMANS.md](HUMANS.md).
+
+## Highlights
+
+- Parse, patch, and stringify TOML 1.1
+- Untouched lines stay byte-identical after a patch
+- `TomlDocument` for multi-step edits and `TomlFormat` for output options
+- `patch-lite` dist-tag for edit-only installs
+- Optional Temporal date/time values
+- Comments travel with the entry they describe when `patch()` removes or reorders it
 
 ## Documentation
 
-- [Installation](#installation)
-- [API](#api)
-- [Patch-lite](#patch-lite)
-- [Comment ownership](#comment-ownership)
-- [Date/time handling and Temporal](#datetime-handling--temporal)
-- [Formatting](#formatting)
-- [Changelog](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/CHANGELOG.md)
-- [Contributing](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/CONTRIBUTING.md)
-- [MIT License](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/LICENSE)
-
-## Installation
-
-toml-patch is dependency-free and can be installed via your favorite package manager.
-
-*Example with NPM*
-
-```
-$ npm install --save @decimalturn/toml-patch
-```
-
-For the standalone lite distribution, install the `lite` npm dist-tag:
-
-```sh
-$ npm install --save @decimalturn/toml-patch@lite
-```
-
-For browser usage, you can use unpkg:
-
-```html
-<script type="module">
-  import * as TOML from 'https://unpkg.com/@decimalturn/toml-patch@v3.3.2/dist/toml-patch.js';
-</script>
-```
+| Document | Contents |
+| --- | --- |
+| [HUMANS.md](HUMANS.md) | Install, verify, uninstall |
+| [AGENTS.md](AGENTS.md) | Layout, gate, invariants |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Development workflow |
+| [API](docs/API.md) | `patch`, `parse`, `stringify`, `TomlDocument` |
+| [Comment ownership](docs/Comment-Ownership.md) | Which comments move with an entry |
+| [Date/time](docs/Dates.md) | `Date` subclasses and Temporal |
+| [Formatting](docs/Formatting.md) | `TomlFormat` options |
+| [Patch-lite](docs/Patch-Lite.md) | Edit-only distribution |
+| [Changelog](CHANGELOG.md) | Release notes |
+| [License](LICENSE) | MIT |
 
 ## API
 
 `toml-patch` provides a functional API for one-time operations and a document-oriented API for workflows that need multiple operations on the same TOML document.
 
-See the [API reference](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/docs/API.md) for `patch`, `parse`, `stringify` and the `TomlDocument` class.
+See the [API reference](docs/API.md) for `patch`, `parse`, `stringify` and the `TomlDocument` class.
 
 For a quick start, patch an existing TOML string like this:
 
@@ -90,10 +90,10 @@ y = 2
 `);
 ```
 
-See the [comment ownership guide](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/docs/Comment-Ownership.md) for the full behavior, including how a blank line opts a comment out of ownership and current scope limitations.
+See the [comment ownership guide](docs/Comment-Ownership.md) for the full behavior, including how a blank line opts a comment out of ownership and current scope limitations.
 
 Note that `patch()` does not reorder entries by default.
-To have it match the key order of the object you pass in, enable `updateOrder` in the [formatting options](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/docs/Formatting.md#updateorder).
+To have it match the key order of the object you pass in, enable `updateOrder` in the [formatting options](docs/Formatting.md#updateorder).
 
 ## Date/Time Handling & Temporal
 
@@ -104,7 +104,7 @@ TOML date/time values are parsed into custom `Date` subclasses (`LocalDate`, `Lo
 The `temporal: true` option requires `Temporal` to be available in the runtime:
 
 | Runtime | How to enable |
-|---|---|
+| --- | --- |
 | **Node.js 26+** | Built-in (no config needed) |
 | **Node.js 20–24** | `node --harmony-temporal` flag |
 | **Node.js 14–26** | [@js-temporal/polyfill](https://www.npmjs.com/package/@js-temporal/polyfill) |
@@ -125,7 +125,7 @@ const obj2 = TOML.parse('d = 2024-01-15\n', { temporal: true });
 
 > **Note:** Only offset-based timezones (`+05:30`, `Z`) are supported in TOML. IANA timezone annotations (e.g., `[Asia/Kolkata]`) will throw an error.
 
-See the [date/time guide](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/docs/Dates.md) for details and examples.
+See the [date/time guide](docs/Dates.md) for details and examples.
 
 ## Patch-lite
 
@@ -145,7 +145,7 @@ const updated = patch(existing, { version: '1.0.1' });
 // updated === 'version = "1.0.1"\n'
 ```
 
-For more info, check out the [Patch-lite guide](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/docs/Patch-Lite.md) 
+For more info, check out the [Patch-lite guide](docs/Patch-Lite.md)
 
 ## Formatting
 
@@ -171,4 +171,12 @@ const toml = stringify({
 }, format);
 
 ```
-See the [formatting reference](https://github.com/DecimalTurn/toml-patch/blob/v3.3.2/docs/Formatting.md) for the complete list of options, auto-detection behavior, `updateOrder` and more examples.
+
+See the [formatting reference](docs/Formatting.md) for the complete list of options, auto-detection behavior, `updateOrder` and more examples.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+
+Copyright (c) 2019–2025 Tim Hall
+Copyright (c) 2025 Martin Leduc

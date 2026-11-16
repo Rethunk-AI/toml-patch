@@ -3,7 +3,7 @@
 > **Line references** are against `dev-fuzz-bug-fixes`@59512ef.
 
 > **Status:** the compensation described in the original goal is already gone. The re-parse + retry path and
-> `patch-validate.ts` were removed, and the direct path now passes the full suite and the historical fuzz
+> the old patch-validate module were removed, and the direct path now passes the full suite and the historical fuzz
 > seeds on its own. Phase 0 (ranges) and Phase 1 (dirtiness) are also already in the tree. What remains is
 > the cause: the coordinate-offset system and the post-hoc repair passes in `patch.ts`.
 
@@ -289,7 +289,7 @@ The production retry and verification path has been removed. The historical fuzz
 pnpm run test -- --testNamePattern="historical fuzz seed"
 ```
 
-The removed `patch-validate.ts` module is no longer part of the build. A temporary assertion can still be
+The old patch-validate module is no longer part of the build. A temporary assertion can still be
 added in a development branch if a new fuzz failure needs a round-trip oracle, but it must not return to
 the public patch path.
 

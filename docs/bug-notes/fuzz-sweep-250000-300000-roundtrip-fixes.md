@@ -3,7 +3,7 @@
 **Status: fixed.** Continuation of
 [`fuzz-sweep-200000-250000-roundtrip-fixes.md`](./fuzz-sweep-200000-250000-roundtrip-fixes.md) — three
 seeds surfaced by the 250000..300000 window of the deterministic `patch()` fuzz sweep
-(`scripts/fuzz-run.ts`, 3 random mutations per seed). Each was distilled to a minimal failing case,
+(`scripts/fuzz-run1.ts`, 3 random mutations per seed). Each was distilled to a minimal failing case,
 pinned with a `test.fails` regression in `src/__tests__/patch.test.ts`, then fixed. Branch
 `dev-fuzz-fixes2`.
 

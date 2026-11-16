@@ -3,7 +3,7 @@
 **Status: fixed.** Continuation of
 [`fuzz-sweep-80000-100000-roundtrip-fixes.md`](./fuzz-sweep-80000-100000-roundtrip-fixes.md) — four more
 round-trip-corruption bugs surfaced by the 120000..160000 window of the deterministic `patch()` fuzz
-sweep (`local/fuzz-run.ts`, 3 random mutations per seed). Each was distilled to a minimal failing
+sweep (`scripts/fuzz-run1.ts`, 3 random mutations per seed). Each was distilled to a minimal failing
 case, pinned with a `test.fails` regression in `src/__tests__/patch.test.ts`, then fixed — test
 commits `2185192`, `8db3a7f`, `303afbb`, `e01937f`; fix commits `82c0d35`, `916cd8a`, `cd1f987`,
 `4eb1a98`; branch `dev-fuzz-fixes2`.
@@ -17,9 +17,11 @@ AOT→plain-array coalescing where nested entry edits weren't counted.
 ## 1. Inline-array element re-rendered as an AOT entry
 
 **121096** (commit `82c0d35`): an inline array element turning from a scalar into an object:
+
 ```toml
 wn9c0 = [ 192915 ]
 ```
+
 with `obj.wn9c0[0] = { k21: "zxZ" }`.
 
 `parseJS`, at the default `inlineTableStart`, renders an array-of-objects as `[[key]]` sections, so
@@ -37,6 +39,7 @@ existing guard in the Add handler.
 ## 2. Nested AOT entry → scalar duplicated the key segment
 
 **129645** (commit `916cd8a`): a deeply-nested array-of-tables entry collapsing to a scalar:
+
 ```toml
 [[""]]
 x = 1
@@ -46,6 +49,7 @@ a = 2
 k.Bh = 1
 wix2 = 2
 ```
+
 with `obj[""][0]["=M._!wD>]"]["l8401w1"][0] = 4567`.
 
 The `isTableArray(existing)` branch regenerates the collapsed AOT as a fresh KV, but computed its JS
@@ -63,6 +67,7 @@ Fix: navigate the full path minus the entry's own trailing numeric index (`typeo
 ## 3. Deleting a table left its prefix-extending sections behind
 
 **136292** (commit `cd1f987`): deleting a table whose key a sibling AOT extends:
+
 ```toml
 [x]
 a = 1
@@ -70,6 +75,7 @@ a = 1
 [[x.y]]
 b = 2
 ```
+
 with `delete obj.x`.
 
 The Remove handler's prefix-extending-sibling sweeps (seeds 2926, 79938) were all gated on
@@ -84,11 +90,13 @@ sibling whose key extends the removed section's key.
 ## 4. AOT → mixed array lost the scalar tail entry
 
 **136865** (commit `4eb1a98`): an array-of-tables replaced by a mixed array (object + scalar):
+
 ```toml
 [[ng.tll]]
 a = 1
 b = 2
 ```
+
 with `obj.ng.tll = [{ k8: 187, k78: [3357.17] }, -4619]`.
 
 A mixed array can't be an AOT (entries must be tables), so `ng.tll` must collapse to an INLINE array

@@ -3,7 +3,7 @@
 **Status: fixed.** Continuation of
 [`fuzz-sweep-160000-200000-roundtrip-fixes.md`](./fuzz-sweep-160000-200000-roundtrip-fixes.md) — three
 seeds surfaced by the 200000..250000 window of the deterministic `patch()` fuzz sweep
-(`scripts/fuzz-run.ts`, 3 random mutations per seed). Each was distilled to a minimal failing case,
+(`scripts/fuzz-run1.ts`, 3 random mutations per seed). Each was distilled to a minimal failing case,
 pinned with a `test.fails` regression in `src/__tests__/patch.test.ts`, then fixed. Branch
 `dev-fuzz-fixes2`.
 
@@ -23,6 +23,7 @@ zrrm9 = ["a", ["fn", 1, false, true, "K", 2, "PLAIN", """
 q9
 FB""", 3], 4]
 ```
+
 with `obj.zrrm9[1][2] = true` and `obj.zrrm9[1].splice(6, 1)`.
 
 `compareArrays` walks `after` left-to-right. When it meets an after-value that isn't found later in
@@ -51,6 +52,7 @@ a = 1
 ["".o96]
 GD64qOzFQn = { x.fj = "abc" }
 ```
+
 with `delete obj[""][0].o96.GD64qOzFQn.x.fj`.
 
 After removing `fj`, the emptied parent `x` must be re-emitted as `x = {}` inside the inline table.

@@ -4,7 +4,7 @@ Rethunk-AI's fork of DecimalTurn/toml-patch (published as `@decimalturn/toml-pat
 
 ## Layout
 
-- `src/`: the library. `parse-toml.ts`, `cst.ts` and `cursor.ts` parse to a concrete syntax tree; `diff.ts` and `patch-lite.ts` compute and apply edits; `formatter.ts`, `generate.ts` and the `*-format.ts` / `*-layout.ts` files write values back. `toml-patch.ts` is the entry; `patch-lite-entry.ts` is the standalone lite build.
+- `src/`: the library. `parse-toml.ts`, `cst.ts` and `cursor.ts` parse to a concrete syntax tree; `diff.ts` and `patch-lite.ts` compute and apply edits; `formatter.ts`, `generate.ts` and the `*-format.ts` / `*-layout.ts` files write values back. `index.ts` is the entry; `patch-lite-entry.ts` is the standalone lite build.
 - `src/__fixtures__`, `src/__invalid__`: test inputs. `browser-tests/` is Playwright; `benchmark/` and `scripts/` hold benchmarks and fuzzers.
 - `submodules/`: toml-test, spec-tests, iarna-toml and smol-toml, used by the spec and cross-parser suites. Clone with `--recurse-submodules`.
 - `docs/`, `specs/`, `CHANGELOG.md`, `jsr.jsonc` (JSR publish config).

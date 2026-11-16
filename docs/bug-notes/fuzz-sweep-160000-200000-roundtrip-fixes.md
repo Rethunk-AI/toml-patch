@@ -3,7 +3,7 @@
 **Status: fixed.** Continuation of
 [`fuzz-sweep-120000-160000-roundtrip-fixes.md`](./fuzz-sweep-120000-160000-roundtrip-fixes.md) — two
 round-trip-corruption bugs surfaced by the 160000..200000 window of the deterministic `patch()` fuzz
-sweep (`scripts/fuzz-run.ts`, 3 random mutations per seed). Each was distilled to a minimal failing
+sweep (`scripts/fuzz-run1.ts`, 3 random mutations per seed). Each was distilled to a minimal failing
 case, pinned with a `test.fails` regression in `src/__tests__/patch.test.ts`, then fixed. Branch
 `dev-fuzz-fixes2`.
 
@@ -24,6 +24,7 @@ aaa''', 30325, false, '''
 bbb
 ccc''', false, "x", 'y']
 ```
+
 with `obj.o4s[1] = false` and `obj.o4s.splice(3, 1)`.
 
 `compareArrays` walks `after` left-to-right, emitting changes while splicing its simulation in
@@ -55,6 +56,7 @@ to a longer name, while adding a sibling key:
 ```toml
 K = { iw.h6dhsnnqm.ho = false }
 ```
+
 with `obj.K.iw.h6dhsnnqm = { k75: false, k85: 66.66 }`.
 
 The rename grows `ho` 🡒 `k75` (one column wider), so the KeyValue's value must shift right. The

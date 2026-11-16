@@ -1,7 +1,7 @@
 # Fuzz sweep 0..3,000,000 round-trip fixes
 
 The rerun reported 16 failures: 15 malformed round-trips and one patch exception.
-The original seeds were rechecked with `scripts/fuzz-run.ts` after the fixes and
+The original seeds were rechecked with `scripts/fuzz-run1.ts` after the fixes and
 all report `FAILURES: 0`. The distilled regressions live in
 `src/__tests__/patch.fuzz.test.ts`.
 

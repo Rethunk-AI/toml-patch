@@ -3,7 +3,7 @@
 **Status: fixed.** Continuation of
 [`fuzz-sweep-350000-400000-roundtrip-fixes.md`](./fuzz-sweep-350000-400000-roundtrip-fixes.md) — two
 seeds surfaced by the 400000..450000 window of the deterministic `patch()` fuzz sweep
-(`scripts/fuzz-run.ts`, 3 random mutations per seed). Branch `dev-fuzz-fixes2`.
+(`scripts/fuzz-run1.ts`, 3 random mutations per seed). Branch `dev-fuzz-fixes2`.
 
 ---
 

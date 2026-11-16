@@ -3,7 +3,7 @@
 **Status: fixed.** Continuation of
 [`fuzz-sweep-60000-80000-roundtrip-fixes.md`](./fuzz-sweep-60000-80000-roundtrip-fixes.md) — four more
 round-trip-corruption bugs surfaced by the 80000..100000 window of the deterministic `patch()` fuzz
-sweep (`local/fuzz-run.ts`, 3 random mutations per seed). Each was distilled to a minimal failing
+sweep (`scripts/fuzz-run1.ts`, 3 random mutations per seed). Each was distilled to a minimal failing
 case, pinned with a `test.fails` regression in `src/__tests__/patch.test.ts`, then fixed — test
 commit `a4a99e9`, fix commit `87bf422`, branch `dev-fuzz-fixes2`.
 
@@ -20,11 +20,13 @@ value-shape condition — and one showed a whole branch was missing the sweep en
 
 - **80004** (commit `87bf422`): a key collapses to an **inline table** while a sibling dotted key
   still extends it:
+
   ```toml
   [a.b]
   "" = 11:17:13.346128
   "".x.y = "v"
   ```
+
   with `obj.a.b[""] = { k60: 1 }`. The `removeSiblingsExtendingPrefix` call in the
   `isKeyValue(existing) && isKeyValue(replacement)` and `isKeyValue(existing) && isInlineItem(existing)` branches
   was guarded by `isNotTable = !isInlineTable(newValue)` — so an inline-table value skipped the sweep
@@ -35,9 +37,11 @@ value-shape condition — and one showed a whole branch was missing the sweep en
 
 - **82825** (commit `87bf422`): the collapsing key is itself a *dotted* key matched by prefix inside
   an **inline table**:
+
   ```toml
   x = { "".1.w46j = -916648, "".e-0cxz9.";" = "v" }
   ```
+
   with `obj.x[""] = "moq45"`. The `findByPath` prefix match lands on `"".1.w46j` (key length 3), so
   `existing` is an `InlineItem` whose key is truncated `"".1.w46j` → `""` in the
   `isInlineItem(existing) && isKeyValue(existing.item) && isKeyValue(replacement)` branch — but that
@@ -52,9 +56,11 @@ value-shape condition — and one showed a whole branch was missing the sweep en
 
 **86547** (commit `87bf422`): a single-line inline array whose two leading elements are both removed
 then re-added corrupts the enclosing dotted key:
+
 ```toml
 b.c.d = [01:48:53, { iuqh = 7544.95655 }, "s", false]
 ```
+
 with `obj.b.c.d[0] = false` and `obj.b.c.d[1].iuqh = 2010-12-09…`,
 format `{ trailingComma: true, bracketSpacing: true, inlineTableStart: 2 }`.
 
@@ -74,11 +80,13 @@ guard (which only flushed when `parent.items.length === 0`) and an extension of 
 ## 3. AOT → plain array mis-coalescing when the elements are dates
 
 **86724** (commit `87bf422`): an array-of-tables collapses to a plain array of dates:
+
 ```toml
 [[x_i42]]
 m = 1
 wxq = 2
 ```
+
 with `obj.x_i42 = [2008-09-12…, 2031-08-14…]`.
 
 The diff emits `Edit["x_i42",0] + Add["x_i42",1]`. `coalesceStructuralReplacements` Strategy 2
@@ -89,6 +97,7 @@ A `Date` satisfies `typeof === 'object'`, so the two-date array was wrongly judg
 array from `jsValue`, and the surviving `Add[1]` double-added `date2`.
 
 Fix has two parts:
+
 - `staysAllObjects` now uses `isObject(el)` (which already excludes `Date`/Temporal/arrays), so
   date-element arrays are correctly coalesced.
 - Guard Strategy 2 to only coalesce when there are **≥2** element-level changes under the prefix.
