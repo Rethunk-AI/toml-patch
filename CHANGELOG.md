@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `patch-lite`: a `Date` replacing a time-only value writes the date-time instead of dropping the date.
+- `TomlDocument.toJsObject`: a `__proto__` table stays an own property instead of becoming the object's prototype (and being dropped by the next `patch()`).
+- `TomlDocument.patch`: a `__proto__` key on the caller's object survives the date-representation restore instead of becoming the new object's prototype.
+- `TomlDocument.update`: replacement text that uses different line endings from the document no longer fails with `Standalone CR; must be CRLF or LF`.
 - Patching: adding a new array of tables writes `[[key]]` sections instead of throwing `Node not found`.
 - Patching: an entry appended to an array of tables lands after the last entry when a comment sits between entries, instead of before it (which reordered the array).
 - Patching: whitespace inside table header brackets (`[ a ]`, `[[ a ]]`) survives every patch.

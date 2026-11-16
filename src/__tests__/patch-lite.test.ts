@@ -451,6 +451,20 @@ describe('date edits', () => {
     expect(patch(existing, updated)).toBe('ts = 1984-02-14T09:15:30.5-07:00\n');
   });
 
+  test('writes the whole date-time when a real Date replaces a time-only value', () => {
+    // A bare local time cannot represent a Date that carries a date component.
+    expect(patch('tm = 07:32:00\n', { tm: new Date('2040-02-02T02:02:02Z') }))
+      .toBe('tm = 2040-02-02T02:02:02.000Z\n');
+  });
+
+  test('keeps the time-only format when the Date is itself a bare time', () => {
+    const existing = 'tm = 07:32:00\n';
+    const updated = parse(existing);
+    updated.tm = new LocalTime('09:15:30', '09:15:30');
+
+    expect(patch(existing, updated)).toBe('tm = 09:15:30\n');
+  });
+
   test('edits a nested date value', () => {
     const existing = 'server = { started = 1979-05-27 }\n';
 

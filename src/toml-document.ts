@@ -178,7 +178,7 @@ export class TomlDocument {
       remainingLines[0] = remainingLines[0].substring(continueFromColumn);
     }
     
-    const remainingToml = remainingLines.join(this._format.newLine);
+    const remainingToml = remainingLines.join(newLineChar);
     
     this._cst = Array.from(continueParsingTOML(truncatedCst, remainingToml, {
       line: continueFromLine,
@@ -276,7 +276,7 @@ function restoreDateRepresentations(updated: any, original: any, seen: WeakSet<o
   for (const key of Object.keys(updated)) {
     const value = updated[key];
     const next = restoreDateRepresentations(value, original[key], seen);
-    restored[key] = next;
+    setOwn(restored, key, next);
     if (next !== value) changed = true;
   }
   return changed ? restored : updated;
@@ -296,9 +296,22 @@ function convertCustomDateClasses(obj: any): any {
   } else if (obj && typeof obj === 'object') {
     const result: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      result[key] = convertCustomDateClasses(value);
+      setOwn(result, key, convertCustomDateClasses(value));
     }
     return result;
   }
   return obj;
+}
+
+/**
+ * Assigns an own enumerable property, including a `__proto__` key that plain
+ * assignment would consume to set the prototype instead of storing the value.
+ */
+function setOwn(target: Record<string, any>, key: string, value: any): void {
+  Object.defineProperty(target, key, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  });
 }

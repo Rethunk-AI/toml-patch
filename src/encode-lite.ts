@@ -90,6 +90,11 @@ function toTomlPatchDate(value: Date): Date {
   const canonical = value.toISOString().replace(/\.000(?=([Zz]|[+-]\d{2}:\d{2})$|$)/, '');
   if (v.isDate()) return new LocalDate(canonical);
   if (v.isTime()) return new LocalTime(canonical, canonical);
+  // A bare local time cannot carry a date, so a Date with a real year that
+  // replaces one is written in its own format instead of losing the date.
+  if (DateFormatHelper.IS_TIME_ONLY.test(raw) && value.getUTCFullYear() > 1) {
+    return native.toISOString();
+  }
   if (v.isLocal()) return new LocalDateTime(canonical, false);
   return new OffsetDateTime(canonical, false);
 }
