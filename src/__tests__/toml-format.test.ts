@@ -679,6 +679,13 @@ describe('validateFormatObject', () => {
       expect(() => validateFormatObject({ trailingNewline: 'yes' })).toThrow(/trailingNewline/);
     });
 
+    test('rejects a trailingNewline that is not a whole non-negative count', () => {
+      for (const count of [-1, 1.7, Infinity, -Infinity, NaN]) {
+        expect(() => stringify({ a: 1 }, { trailingNewline: count }))
+          .toThrow('trailingNewline (expected boolean or non-negative integer, got ' + count + ')');
+      }
+    });
+
     test('rejects non-boolean trailingComma', () => {
       expect(() => validateFormatObject({ trailingComma: 1 })).toThrow(TypeError);
       expect(() => validateFormatObject({ trailingComma: 1 })).toThrow(/trailingComma.*expected boolean/);

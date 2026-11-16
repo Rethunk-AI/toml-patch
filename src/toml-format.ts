@@ -433,7 +433,9 @@ export function validateFormatObject(format: any): any {
       : `expected boolean, non-negative integer, "auto" or "parent", got ${typeof v}`;
   const schema: Record<string, (v: any) => string | null> = {
     newLine: v => typeof v === 'string' ? null : `expected string, got ${typeof v}`,
-    trailingNewline: v => typeof v === 'boolean' || typeof v === 'number' ? null : `expected boolean or number, got ${typeof v}`,
+    trailingNewline: v => typeof v === 'boolean' || (typeof v === 'number' && Number.isInteger(v) && v >= 0)
+      ? null
+      : `expected boolean or non-negative integer, got ${typeof v === 'number' ? v : typeof v}`,
     trailingComma: isBool,
     bracketSpacing: isBool,
     leadingBom: isBool,
