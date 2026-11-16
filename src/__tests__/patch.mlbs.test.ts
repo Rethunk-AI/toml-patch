@@ -135,3 +135,15 @@ version = "1.0.0"
   });
 });
 
+
+describe('identity patch preserves multiline string newlines', () => {
+  test('keeps CRLF bytes inside multiline basic and literal strings', () => {
+    // Document structure is CRLF so format.newLine is \r\n; interiors use
+    // bare LF. A global newline replace would rewrite those payload bytes.
+    const input =
+      'basic = """\r\nhello\nworld\r\n"""\r\n' +
+      "literal = '''\r\nfoo\nbar\r\n'''\r\n";
+
+    expect(patch(input, parse(input))).toBe(input);
+  });
+});

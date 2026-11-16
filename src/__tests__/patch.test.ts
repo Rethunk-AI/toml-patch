@@ -1141,7 +1141,7 @@ test('should handle mixed line endings consistently', () => {
   expect(countTrailingCRLF(patched)).toBe(2);
 });
 
-test('should normalize bare LF in new value to CRLF to match the document line endings', () => {
+test('should keep bare LF in a new multiline string on a CRLF document', () => {
   const existing = '[description]\r\ntext = """\r\nFirst line\r\nSecond line\r\n"""\r\n';
 
   const value = parse(existing);
@@ -1150,26 +1150,24 @@ test('should normalize bare LF in new value to CRLF to match the document line e
   value.description.text = 'Hello world\nand goodbye world\n';
   const patched = patch(existing, value);
 
-  // The TOML structure uses CRLF. The bare \n in the value is normalized to \r\n
-  // so the output has no mixed line endings.
+  // Structural breaks follow the document. Bytes inside the string stay as
+  // written from the JS value, so a bare LF in the payload is not rewritten.
   expect(patched).not.toContain('\r\r\n');
-  expect(patched.split('\r\n').join('').includes('\n')).toBe(false);
-  expect(patched).toEqual('[description]\r\ntext = """\r\nHello world\r\nand goodbye world\r\n"""\r\n');
-  expect(parse(patched).description.text).toEqual('Hello world\r\nand goodbye world\r\n');
+  expect(patched).toEqual('[description]\r\ntext = """\r\nHello world\nand goodbye world\n"""\r\n');
+  expect(parse(patched).description.text).toEqual('Hello world\nand goodbye world\n');
 });
 
-test('should normalize CRLF in new value to LF to match the document line endings', () => {
+test('should keep CRLF in a new multiline string on an LF document', () => {
   const existing = '[description]\ntext = """\nFirst line\nSecond line\n"""\n';
 
   const value = parse(existing);
   value.description.text = 'Hello world\r\nand goodbye world\r\n';
   const patched = patch(existing, value);
 
-  // The TOML structure uses LF. The \r\n in the value is normalized to \n
-  // so the output has no mixed line endings.
-  expect(patched).not.toContain('\r\n');
-  expect(patched).toEqual('[description]\ntext = """\nHello world\nand goodbye world\n"""\n');
-  expect(parse(patched).description.text).toEqual('Hello world\nand goodbye world\n');
+  // Structural breaks follow the document. Bytes inside the string stay as
+  // written from the JS value.
+  expect(patched).toEqual('[description]\ntext = """\nHello world\r\nand goodbye world\r\n"""\n');
+  expect(parse(patched).description.text).toEqual('Hello world\r\nand goodbye world\r\n');
 });
 
 test('should keep literal \\n and \\r\\n sequences while normalizing real newlines to CRLF', () => {
@@ -1186,11 +1184,11 @@ test('should keep literal \\n and \\r\\n sequences while normalizing real newlin
   expect(patched).toEqual(
     '[description]\r\n' +
     'text = """\r\n' +
-    'literal \\\\n and literal \\\\r\\\\n plus real\r\n' +
+    'literal \\\\n and literal \\\\r\\\\n plus real\n' +
     'line\r\n' +
     'end"""\r\n'
   );
-  expect(parse(patched).description.text).toEqual('literal \\n and literal \\r\\n plus real\r\nline\r\nend');
+  expect(parse(patched).description.text).toEqual('literal \\n and literal \\r\\n plus real\nline\r\nend');
 });
 
 test('should keep literal \\n and \\r\\n sequences while normalizing real newlines to LF', () => {
@@ -1207,11 +1205,11 @@ test('should keep literal \\n and \\r\\n sequences while normalizing real newlin
   expect(patched).toEqual(
     '[description]\n' +
     'text = """\n' +
-    'literal \\\\n and literal \\\\r\\\\n plus real\n' +
+    'literal \\\\n and literal \\\\r\\\\n plus real\r\n' +
     'line\n' +
     'end"""\n'
   );
-  expect(parse(patched).description.text).toEqual('literal \\n and literal \\r\\n plus real\nline\nend');
+  expect(parse(patched).description.text).toEqual('literal \\n and literal \\r\\n plus real\r\nline\nend');
 });
 
 test('should respect quoted keys when parsing', () => {
@@ -6938,9 +6936,9 @@ describe('Mixed line endings', () => {
 
     obj.key = updateValue;
 
-    // detectNewline finds \r\n first (inside the MLBS value), so the document format
-    // is CRLF. The single trailing \n is counted as 1 trailing newline and output as \r\n.
-    expect(patch(existing, obj)).toEqual('key = """updated\r\nvalue"""\r\n');
+    // detectNewline finds \r\n first (inside the MLBS value), so structural
+    // breaks and the trailing newline are CRLF. The new value's own newlines stay.
+    expect(patch(existing, obj)).toEqual(`key = """${updateValue}"""\r\n`);
   });
 
 
@@ -6955,11 +6953,9 @@ describe('Mixed line endings', () => {
 
     obj.key = updateValue;
 
-    // detectNewline finds \n first (inside the MLBS value), so the document format
-    // is LF. The single trailing \r\n is counted as 1 trailing newline and output as \n.
-    // Note that even when we updated using a CRLF format string, the output is still
-    // LF because the original document format is LF.
-    expect(patch(existing, obj)).toEqual('key = """updated\nvalue"""\n');
+    // detectNewline finds \n first (inside the MLBS value), so structural
+    // breaks and the trailing newline are LF. The new value's own newlines stay.
+    expect(patch(existing, obj)).toEqual(`key = """${updateValue}"""\n`);
   });
 
   test('should warn when patching a mixed line ending document normalizes to LF', () => {
@@ -6981,12 +6977,12 @@ describe('Mixed line endings', () => {
 
     const result = patch(existing, obj);
 
-    // The literal string content is normalized to the document's LF endings.
+    // Untouched string payload keeps its original CRLF interiors.
     expect(result).toEqual([
       'name = "before"', '\n',
       "multi = '''", '\n',
-      'line1', '\n',
-      'line2', '\n',
+      'line1', '\r\n',
+      'line2', '\r\n',
       "'''", '\n',
       'unrelated = 2', '\n'
     ].join(''));
@@ -10791,11 +10787,8 @@ describe('wasEmptied compensation — multiple tables', () => {
   });
 
   // Fuzz seed 20 (remaining diff): with newLine = "\r\n", a multiline
-  // string's content newlines are normalised to the structural line
-  // endings, so re-parsing the patched output no longer deep-equals the
-  // input object.  The library intentionally normalises value newlines
-  // (no mixed line endings in the output); the fuzz harness comparison
-  // must normalise \r\n vs \n in strings the same way.
+  // Structural newlines follow newLine; bytes inside the literal stay as
+  // in the source. Re-parsing therefore still sees LF interiors.
   test('multiline literal string content follows newLine (seed 20)', () => {
     const src = dedent`
       ["?"]
@@ -10808,18 +10801,16 @@ describe('wasEmptied compensation — multiple tables', () => {
     const obj = parse(src);
     expect(obj['?'].j16ata5).toEqual('Z(4jxV:VdbXcB<t\nH4T.1\nJW[f*l/O!KyD\n');
     const result = patch(src, obj, { newLine: '\r\n' });
-    expect(result).toEqual([
-      '["?"]',
-      "j16ata5 = '''",
-      'Z(4jxV:VdbXcB<t',
-      'H4T.1',
-      'JW[f*l/O!KyD',
-      "'''",
-      '',
-    ].join('\r\n'));
+    expect(result).toEqual(
+      '["?"]\r\n' +
+        "j16ata5 = '''\n" +
+        'Z(4jxV:VdbXcB<t\n' +
+        'H4T.1\n' +
+        "JW[f*l/O!KyD\n'''\r\n"
+    );
     expect(parse(result)).toEqual({
       '?': {
-        j16ata5: 'Z(4jxV:VdbXcB<t\r\nH4T.1\r\nJW[f*l/O!KyD\r\n',
+        j16ata5: 'Z(4jxV:VdbXcB<t\nH4T.1\nJW[f*l/O!KyD\n',
       },
     });
   });

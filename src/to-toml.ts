@@ -41,6 +41,29 @@ import { isGeneratedNestedTable, isGeneratedNestedTableHost, isPreservedMultilin
 
 const BY_NEW_LINE = /(\r\n|\n)/g;
 
+/** Rewrite layout newlines to `nl`. Ranges are string payloads and must stay as-is. */
+function replaceNewlinesOutside(
+  text: string,
+  protectedRanges: Array<[number, number]>,
+  nl: string,
+): string {
+  if (protectedRanges.length === 0) return text.replace(/\r\n|\n/g, nl);
+  const ranges = protectedRanges
+    .filter(([start, end]) => end > start)
+    .sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+  let out = '';
+  let pos = 0;
+  for (const [start, end] of ranges) {
+    if (start > pos) out += text.slice(pos, start).replace(/\r\n|\n/g, nl);
+    if (end > pos) {
+      out += text.slice(Math.max(start, pos), end);
+      pos = Math.max(pos, end);
+    }
+  }
+  if (pos < text.length) out += text.slice(pos).replace(/\r\n|\n/g, nl);
+  return out;
+}
+
 /**
  * Converts a Concrete Syntax Tree (CST) back to TOML format string.
  * 
@@ -233,7 +256,43 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
     }
   }
 
-  return lines.join(format.newLine) + format.newLine.repeat(format.trailingNewline);
+  // Newlines inside multiline strings are payload, not layout. Joining every
+  // row with format.newLine would rewrite those bytes even on an identity
+  // patch. Only breaks the emitter invented (between records, trailing EOF)
+  // follow the document style.
+  const stringBreaks = new Map<number, string>();
+  const recordStringBreaks = (node: TreeNode) => {
+    if (
+      node.type === NodeType.String &&
+      node.loc.end.line > node.loc.start.line
+    ) {
+      const parts = (node as StringNode).raw.split(BY_NEW_LINE);
+      let lineIndex = node.loc.start.line - 1;
+      for (let i = 1; i < parts.length; i += 2) {
+        stringBreaks.set(lineIndex, parts[i]);
+        lineIndex += 1;
+      }
+    }
+    if (hasItems(node)) {
+      for (const item of node.items as TreeNode[]) recordStringBreaks(item);
+    }
+    if (isKeyValue(node)) recordStringBreaks(node.value);
+    if (isInlineItem(node)) recordStringBreaks(node.item);
+  };
+  if (isIterable(cst)) {
+    for (const item of cst) recordStringBreaks(item as TreeNode);
+  } else {
+    recordStringBreaks(cst as unknown as TreeNode);
+  }
+
+  let output = '';
+  for (let i = 0; i < lines.length; i++) {
+    output += lines[i];
+    if (i < lines.length - 1) {
+      output += stringBreaks.get(i) ?? format.newLine;
+    }
+  }
+  return output + format.newLine.repeat(format.trailingNewline);
 }
 
 /**
@@ -288,6 +347,8 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
     ? Array.from(cst as Iterable<TreeNode>)
     : [cst as unknown as TreeNode];
   const chunks: string[] = [];
+  const protectedRanges: Array<[number, number]> = [];
+  let outLen = 0;
   const copiedRanges = createCopiedRanges();
   const hostedComments: Comment[] = [];
   const consumedComments = new WeakSet<Comment>();
@@ -333,6 +394,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
   const append = (text: string): void => {
     if (text.length === 0) return;
     chunks.push(text);
+    outLen += text.length;
     const parts = text.split(/\r\n|\n/);
     if (parts.length === 1) {
       column += text.length;
@@ -587,6 +649,25 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
     }
   };
 
+  const protectCopiedStrings = (
+    node: TreeNode,
+    copySourceStart: number,
+    outputStart: number,
+    copyLength: number,
+  ): void => {
+    if (node.type === NodeType.String && node.range) {
+      const rel = node.range[0] - copySourceStart;
+      const len = node.range[1] - node.range[0];
+      if (rel >= 0 && rel + len <= copyLength) {
+        protectedRanges.push([outputStart + rel, outputStart + rel + len]);
+      }
+      return;
+    }
+    for (const child of directChildren(node)) {
+      protectCopiedStrings(child, copySourceStart, outputStart, copyLength);
+    }
+  };
+
   const emitNode = (node: TreeNode, place = true): void => {
     if (node.type === NodeType.Comment && consumedComments.has(node as Comment)) return;
     const source = getNodeSource(node);
@@ -602,7 +683,9 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
           if (gap === undefined) advanceTo(node.loc.start.line, node.loc.start.column);
           else append(gap);
         }
+        const outputStart = outLen;
         append(slice);
+        protectCopiedStrings(node, node.range[0], outputStart, slice.length);
         copiedRanges.add(source, node.range[0], node.range[1]);
         lastCopy = { source, end: node.range[1], chunkCount: chunks.length };
         return;
@@ -654,10 +737,14 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
         if (place) advanceTo(node.loc.start.line, node.loc.start.column);
         append((node as Key).raw);
         break;
-      case NodeType.String:
+      case NodeType.String: {
         if (place) advanceTo(node.loc.start.line, node.loc.start.column);
-        append((node as StringNode).raw);
+        const raw = (node as StringNode).raw;
+        const outputStart = outLen;
+        append(raw);
+        protectedRanges.push([outputStart, outLen]);
         break;
+      }
       case NodeType.Integer:
         if (place) advanceTo(node.loc.start.line, node.loc.start.column);
         append((node as Integer).raw);
@@ -714,7 +801,9 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
 
   for (const root of roots) emitNode(root);
 
-  const output = chunks.join('').replace(/\r\n|\n/g, format.newLine);
+  // Structural newlines follow format.newLine. Bytes inside string values do
+  // not: a global replace would rewrite quoted interiors on an identity patch.
+  const output = replaceNewlinesOutside(chunks.join(''), protectedRanges, format.newLine);
   return output + format.newLine.repeat(format.trailingNewline);
 }
 
@@ -734,6 +823,8 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
       ? Array.from(cst as Iterable<TreeNode>)
       : [cst as unknown as TreeNode];
   const chunks: string[] = [];
+  const protectedRanges: Array<[number, number]> = [];
+  let outLen = 0;
   let line = 1;
   let column = 0;
 
@@ -743,6 +834,7 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
   const append = (text: string): void => {
     if (text.length === 0) return;
     chunks.push(text);
+    outLen += text.length;
     let count = 0;
     let lastIndex = -1;
     let index = text.indexOf('\n');
@@ -844,7 +936,7 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
       case NodeType.Boolean:
       case NodeType.DateTime:
       case NodeType.Comment: {
-        stack.push([1, leafRaw(node)]);
+        stack.push([1, leafRaw(node), node.type === NodeType.String]);
         if (place) stack.push([3, node.loc.start.line, node.loc.start.column]);
         break;
       }
@@ -909,9 +1001,12 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
       case 0:
         pushNode(command[1], command[2]);
         break;
-      case 1:
+      case 1: {
+        const start = outLen;
         append(command[1]);
+        if (command[2]) protectedRanges.push([start, outLen]);
         break;
+      }
       case 2: {
         const fromLine = command[1];
         const fromColumn = command[2];
@@ -932,7 +1027,7 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
     }
   }
 
-  return chunks.join('').replace(/\r\n|\n/g, format.newLine) + format.newLine.repeat(format.trailingNewline);
+  return replaceNewlinesOutside(chunks.join(''), protectedRanges, format.newLine) + format.newLine.repeat(format.trailingNewline);
 }
 
 /**

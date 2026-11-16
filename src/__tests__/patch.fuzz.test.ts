@@ -3938,17 +3938,17 @@ test('deleting a deep dotted key inside a multiline inline table (seed 1286183)'
     truncateZeroTimeInDates: true,
     useTabsForIndentation: false
   });
-  expect(result).toEqual(dedent`
-    header = """
-    ab"""
-    [section]
-    outer."quoted key" = {
-        first.second.third = {  alpha.beta = {} },
-        filler = { one.two.three = -65079.12231, flag = false, "q one".mid.leaf = false, group = { count.total = 770012, note.body = """
-    first inline note""", a-b.c.d = 'short lit', e.f = 36740, "q two".g = false, empty = "", "q three".h = 527558, "q four".date.stamp = 2080-12-04, "q five" = 31256.58522, i.j = 819597, k = 0x08, l = -284092, MM = 0o64, n.o = true }, "q six".p.q = 2081-06-28T00:40:23Z, "q seven".r = """
-    second inline note""", s.t = {}, u.v = 90692.79376, w."q eight" = true },
-    }
-  `.replace(/\n/g, '\r\n') + '\r\n');
+  expect(result).toEqual(
+    'header = """\n' +
+    'ab"""\r\n' +
+    '[section]\r\n' +
+    'outer."quoted key" = {\r\n' +
+    '    first.second.third = {  alpha.beta = {} },\r\n' +
+    '    filler = { one.two.three = -65079.12231, flag = false, "q one".mid.leaf = false, group = { count.total = 770012, note.body = """\n' +
+    'first inline note""", a-b.c.d = \'short lit\', e.f = 36740, "q two".g = false, empty = "", "q three".h = 527558, "q four".date.stamp = 2080-12-04, "q five" = 31256.58522, i.j = 819597, k = 0x08, l = -284092, MM = 0o64, n.o = true }, "q six".p.q = 2081-06-28T00:40:23Z, "q seven".r = """\n' +
+    'second inline note""", s.t = {}, u.v = 90692.79376, w."q eight" = true },\r\n' +
+    '}\r\n'
+  );
   expect(parse(result)).toEqual(obj);
 });
 
@@ -4004,14 +4004,14 @@ test('replacing an inline-table member with a nested object in a multiline inlin
     truncateZeroTimeInDates: false,
     useTabsForIndentation: true
   });
-  expect(result).toEqual(dedent`
-    [outer.inner]
-    "".middle.target = {
-        first = { alpha = { beta = false, gamma = false, delta = [ 2036-09-23T00:00:00.000Z, true, -1287.6224634237587, ], } },
-        "quoted a"."quoted b" = ["""
-    ml""", nan, "plain text"],
-    }
-  `.replace(/\n/g, '\r\n') + '\r\n');
+  expect(result).toEqual(
+    '[outer.inner]\r\n' +
+    '"".middle.target = {\r\n' +
+    '    first = { alpha = { beta = false, gamma = false, delta = [ 2036-09-23T00:00:00.000Z, true, -1287.6224634237587, ], } },\r\n' +
+    '    "quoted a"."quoted b" = ["""\n' +
+    'ml""", nan, "plain text"],\r\n' +
+    '}\r\n'
+  );
   expect(parse(result)).toEqual(obj);
 });
 

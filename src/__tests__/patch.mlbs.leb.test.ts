@@ -1260,8 +1260,8 @@ describe('NL issues', () => {
   
     expect(patched).toEqual(
       '[description]\n' +
-      'text = """\\' + '\n' +
-      '  The slow brown fox \\' + '\n' +
+      'text = """\\' + '\r\n' +
+      '  The slow brown fox \\' + '\r\n' +
       '  jumps over the lazy dog."""\n'
     );
     expect(parse(patched).description.text).toEqual('The slow brown fox jumps over the lazy dog.');
