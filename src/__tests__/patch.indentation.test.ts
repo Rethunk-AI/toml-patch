@@ -1136,4 +1136,11 @@ describe('untouched lines stay byte-identical', () => {
     expected[7] = 'k = 2';
     expect(result.split('\n')).toEqual(expected);
   });
+
+  test('trailing whitespace on an untouched line survives a patch', () => {
+    expect(patch('a = 1\t\nb = 2\n', parse('a = 1\t\nb = 2\n'))).toBe('a = 1\t\nb = 2\n');
+    expect(patch('a = 1   \nb = 2\n', { a: 1, b: 9 })).toBe('a = 1   \nb = 9\n');
+    expect(patch('[t]\t\nx = 1\n[o]\ny = 2\n', { t: { x: 1 }, o: { y: 9 } }))
+      .toBe('[t]\t\nx = 1\n[o]\ny = 9\n');
+  });
 });

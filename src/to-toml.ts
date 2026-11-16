@@ -65,6 +65,26 @@ function replaceNewlinesOutside(
 }
 
 /**
+ * Source whitespace between the end of `node` and the end of that line, or ''
+ * when something else follows it there. Both emitters build newlines from the
+ * node's end column, so this is the only record of whitespace that trailed the
+ * last node on a line.
+ */
+function sourceLineTail(node: TreeNode): string {
+  const source = getNodeSource(node);
+  if (source === undefined || !node.range) return '';
+  const start = node.range[1];
+  let end = start;
+  while (end < source.length) {
+    const code = source.charCodeAt(end);
+    if (code === 0x0a || code === 0x0d) break;
+    end++;
+  }
+  const tail = source.slice(start, end);
+  return /^[ \t]*$/.test(tail) ? tail : '';
+}
+
+/**
  * Converts a Concrete Syntax Tree (CST) back to TOML format string.
  * 
  * This function traverses the CST and reconstructs the original TOML document
@@ -90,6 +110,19 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
 
   const lines: string[] = [];
 
+  // Whitespace the source had after the last node on each line. Nodes carry no
+  // trailing whitespace of their own and blank space between them is rebuilt
+  // from column arithmetic, so it would never be written otherwise.
+  const lineTails = new Map<number, { column: number; text: string }>();
+  const recordLineTail = (node: TreeNode): void => {
+    const text = sourceLineTail(node);
+    if (text.length === 0) return;
+    const existing = lineTails.get(node.loc.end.line);
+    if (!existing || existing.column <= node.loc.end.column) {
+      lineTails.set(node.loc.end.line, { column: node.loc.end.column, text });
+    }
+  };
+
   // Inline traversal for monomorphic property access (avoids generic traverse
   // visitor dispatch which causes megamorphic inline cache misses in V8)
   const closingPosition = (container: InlineArray | InlineTable): { line: number; column: number } => {
@@ -107,6 +140,11 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
   };
 
   function emitNode(node: TreeNode) {
+    emitNodeBody(node);
+    recordLineTail(node);
+  }
+
+  function emitNodeBody(node: TreeNode) {
     switch (node.type) {
       case NodeType.Document:
         for (let i = 0; i < (node as Document).items.length; i++)
@@ -213,6 +251,14 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
     for (const item of cst) emitNode(item as TreeNode);
   } else {
     emitNode(cst as unknown as TreeNode);
+  }
+
+  // Only a line the emitter finished exactly where the node ended gets the
+  // source's tail back: a line that moved ends somewhere else and its old
+  // whitespace no longer belongs to it.
+  for (const [line, tail] of lineTails) {
+    const emitted = lines[line - 1];
+    if (emitted !== undefined && emitted.length === tail.column) lines[line - 1] = emitted + tail.text;
   }
 
   // Post-process: convert leading spaces to tabs if useTabsForIndentation is enabled
@@ -391,8 +437,22 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
   const indentation = (width: number): string =>
     (format.useTabsForIndentation ? '\t' : SPACE).repeat(width);
 
+  // Whitespace the source had after the last node written on the line. Gaps
+  // are rebuilt from the nodes' columns, which carry no trailing whitespace, so
+  // it is held here until the newline that ends the line is written. Any other
+  // text at that point supersedes it.
+  let lineTail: string | undefined;
+
   const append = (text: string): void => {
     if (text.length === 0) return;
+    if (lineTail !== undefined) {
+      const tail = lineTail;
+      lineTail = undefined;
+      if (text.charCodeAt(0) === 0x0a || text.charCodeAt(0) === 0x0d) {
+        chunks.push(tail);
+        column += tail.length;
+      }
+    }
     chunks.push(text);
     outLen += text.length;
     const parts = text.split(/\r\n|\n/);
@@ -669,6 +729,12 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
   };
 
   const emitNode = (node: TreeNode, place = true): void => {
+    emitNodeBody(node, place);
+    const tail = sourceLineTail(node);
+    if (tail.length > 0) lineTail = tail;
+  };
+
+  const emitNodeBody = (node: TreeNode, place = true): void => {
     if (node.type === NodeType.Comment && consumedComments.has(node as Comment)) return;
     const source = getNodeSource(node);
     if (source !== undefined && node.range && copiedRanges.covers(source, node.range[0], node.range[1])) {
@@ -800,6 +866,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
   };
 
   for (const root of roots) emitNode(root);
+  if (lineTail !== undefined && lineTail.length > 0) chunks.push(lineTail);
 
   // Structural newlines follow format.newLine. Bytes inside string values do
   // not: a global replace would rewrite quoted interiors on an identity patch.
