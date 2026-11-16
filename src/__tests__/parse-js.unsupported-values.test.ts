@@ -1,4 +1,4 @@
-import { parse, patch, stringify } from '../';
+import { patch, stringify } from '../';
 import parseJS from '../parse-js';
 
 test('a function reports the value and the path instead of recursing', () => {
