@@ -868,7 +868,7 @@ describe('newLine normalization', () => {
   });
 
   // '\r' alone is a legal string but not a legal TOML line ending, and '' runs
-  // every line together. Both used to pass straight through to the writer.
+  // every line together. Neither may pass through to the writer.
   describe.each(['\r', '\r', '', 'invalid', 'CR', '\n\n'])('rejects %j', (newLine) => {
     const message = 'Invalid newLine value: expected LF or CRLF';
 

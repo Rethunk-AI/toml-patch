@@ -139,7 +139,7 @@ function compareObjects(before: any, after: any, path: Path = [], options: DiffO
   //
   // Keys present on both sides are excluded from both groups: they were not renamed and are
   // not available as targets. That is what keeps a removal whose value happens to match an
-  // untouched sibling from being read as a rename onto it (issue #262).
+  // untouched sibling from being read as a rename onto it.
   //
   // Tracked as from -> to because step 4 (order emission) has to follow a rename through
   // rather than treating the old name as simply gone.
@@ -387,7 +387,7 @@ function compareArrays(before: any[], after: any[], path: Path = [], options: Di
       continue;
     }
 
-    // Check if item has been moved -> shift into place
+    // Check if the item is a moved survivor -> shift into place
     const from = overflow ? -1 : before_stable.indexOf(value!, index + 1);
     if (from > -1) {
       // Is `before_stable[index]` (the mismatched element at this slot) a

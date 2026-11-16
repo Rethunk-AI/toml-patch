@@ -642,8 +642,8 @@ test('should edit an element of an array written on separate lines', () => {
 
 // Verifies that editing a key inside an inline table that is an element of an
 // array written on separate lines works correctly.
-// Previously this threw "Node not found at arr.2.a" because findByPath could
-// not traverse into InlineItem<InlineTable> — it only handled InlineItem<KeyValue>.
+// findByPath must traverse into InlineItem<InlineTable>, not only
+// InlineItem<KeyValue>, or this throws "Node not found at arr.2.a".
 test('should edit a key inside an inline table element of an array written on separate lines', () => {
   const existing = dedent`
     arr = [
@@ -6483,9 +6483,8 @@ describe('undefined handling in patch', () => {
   });
 
   // Removing a key from an inline table (object) inside an inline array (e.g. deleting a property
-  // directly without undefined). This is the minimal repro for the bug that was
-  // previously triggered via undefined: the parent at path ["items", 0] was an
-  // InlineItem wrapping an InlineTable, and patch.ts wasn't unwrapping that case.
+  // directly without undefined). The parent at path ["items", 0] is an
+  // InlineItem wrapping an InlineTable, so the handler must unwrap that case.
   test('should remove a key from an object inside an inline array', () => {
     const existing = dedent`
       items = [ { name = "Hammer", color = "red" }, { name = "Nail", color = "gray" } ]
@@ -7485,9 +7484,9 @@ describe('Temporal.ZonedDateTime handling', () => {
 describe('non-finite float (inf/nan) array diff', () => {
 
   test('should not confuse inf and nan when removing an array item (seed 22629)', () => {
-    // `stableStringify` used to collapse `inf` and `nan` (and `null`) to the
-    // same stable string, so the diff misidentified which item to remove —
-    // removing index 1 of `[1, inf, 2, nan]` yielded `[1, 2, inf]`.
+    // `stableStringify` must distinguish `inf`, `nan`, and `null`; collapsing
+    // them to the same stable string makes the diff remove the wrong item —
+    // removing index 1 of `[1, inf, 2, nan]` would yield `[1, 2, inf]`.
     const src = 'k = [1, inf, 2, nan]\n';
     const obj = parse(src) as any;
     obj.k.splice(1, 1);
@@ -10742,9 +10741,9 @@ describe('wasEmptied compensation — multiple tables', () => {
   // Removing the last segment of a dotted key inside an AOT entry.  Every
   // prefix of the change path matches the dotted key via prefix-matching,
   // so findParent returns the KV itself (even after re-resolving one
-  // segment higher) and the handler previously unwrapped its Integer value
-  // as the parent — crashing with "Unsupported parent type 'Integer' for
-  // remove".  The KV must be removed from the AOT entry and the emptied
+  // segment higher). Unwrapping its Integer value as the parent crashes with
+  // "Unsupported parent type 'Integer' for remove". The KV must be removed
+  // from the AOT entry and the emptied
   // parent preserved as an inline table inside the entry.
   test('delete last segment of dotted key inside AOT entry (seed 20)', () => {
     const src = dedent`
@@ -10840,9 +10839,9 @@ describe('wasEmptied compensation — multiple tables', () => {
       ` + '\n');
   });
 
-  // Same operation with scalar values: the second add used to crash with
-  // "Unsupported parent type 'Integer' for insert" because the prefix
-  // match resolved the dotted KV and unwrapped its scalar value.
+  // Same operation with scalar values: the second add crashes with
+  // "Unsupported parent type 'Integer' for insert" if the prefix
+  // match resolves the dotted KV and unwraps its scalar value.
   test('consecutive scalar adds under a restored dotted prefix (seed 4)', () => {
     const src = dedent`
       [t.iHv.o4umx0u5w_]
@@ -11505,11 +11504,11 @@ describe('wasEmptied compensation — multiple tables', () => {
   });
 
   // Fuzz seed 1406: replacing a duplicated `true` inside a multiline array
-  // (the same value occurs again later) used to diff as an Add plus a chain
-  // of Moves, because compareArrays read the element as "kept" — and the
-  // move chain slid the date row that follows the multiline string's
-  // closing quotes onto them.  compareArrays now counts surplus occurrences
-  // in the unmatched suffixes and edits the element in place instead.
+  // (the same value occurs again later) must not diff as an Add plus a chain
+  // of Moves. compareArrays treating the element as "kept" slides the date
+  // row that follows the multiline string's closing quotes onto them.
+  // compareArrays counts surplus occurrences in the unmatched suffixes and
+  // edits the element in place instead.
   test('editing a duplicated array item keeps the multiline-string tail (seed 1406)', () => {
     const src = dedent`
       dgzj3t = ["2Htn5AGYQ4KHFejd{3,G)hZ%a>nS4q", true, "d{Tz[RsD!:6bn*80Pd", "+fXxjsRtucWI5.P]}Me6R3*Nl|1L:!nz4(skHf' ", 0x35e6e402, true, ["Lx1t$zO9sow'.zUt", 0x810fd, 2010-09-14, '''
@@ -11746,7 +11745,7 @@ describe('wasEmptied compensation — multiple tables', () => {
 
   test('emptying a multiline inline array keeps the closing bracket on the array row (seed 5522)', () => {
     // The only item starts on the array's own bracket line, so its span
-    // includes that line; the removal offset used to drag the closing
+    // includes that line; the removal offset must not drag the closing
     // bracket into the previous row ("2057]09-23").
     const src = '")k".sz1ttzn = 2057-09-23T12:58:41Z\necq = ["""\n%eFd&xC>@A*t}\nZNI\n\n:r|:]&S*(/^zd`wc"""]\n';
     const obj = parse(src) as any;

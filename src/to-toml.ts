@@ -84,6 +84,12 @@ function sourceLineTail(node: TreeNode): string {
   return /^[ \t]*$/.test(tail) ? tail : '';
 }
 
+/** Renders `[key]` or `[[key]]` with the whitespace the source had inside the brackets. */
+function bracketedKey(key: TableKey | TableArrayKey, width: 1 | 2): string {
+  const [left, right] = key.padding ?? ['', ''];
+  return '['.repeat(width) + left + key.item.raw + right + ']'.repeat(width);
+}
+
 /**
  * Converts a Concrete Syntax Tree (CST) back to TOML format string.
  * 
@@ -100,12 +106,6 @@ function sourceLineTail(node: TreeNode): string {
  * const tomlString = toTOML(cst, TomlFormat.default());
  * ```
  */
-/** Renders `[key]` or `[[key]]` with the whitespace the source had inside the brackets. */
-function bracketedKey(key: TableKey | TableArrayKey, width: 1 | 2): string {
-  const [left, right] = key.padding ?? ['', ''];
-  return '['.repeat(width) + left + key.item.raw + right + ']'.repeat(width);
-}
-
 export default function toTOML(cst: CST, format: TomlFormat): string {
 
   const lines: string[] = [];

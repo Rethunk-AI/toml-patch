@@ -24,7 +24,21 @@ stringify(parse('t = 07:32:00.123456\n'));
 // 't = 07:32:00.123456\n'
 ```
 
-`patch()` leaves the digits alone when the value does not change, a value that only differs in how its fraction is spelled (`.5` against `.500`) is not an edit, and an edit below the millisecond (`.123456` to `.123999`) is applied. When the value does change, it writes the digits it needs to be exact, widened to the source's width when the source declared zeros there: 750 ms against a source that wrote `.5` becomes `.75` and never `.7`, `.500` becomes `.750`, and `.500000` becomes `.750000`. Digits that were significant are not padding, so `.123456` edited to 500 ms becomes `.5` — the same rule numbers follow, where `1.00` keeps its decimals and `1.5` becomes `2`. Use [`minimumTimeDecimals`](Formatting.md#minimumtimedecimals) when a document wants a wider fraction. A source written without a fraction stays without one unless the new value has a non-zero millisecond, which is then written in its minimal form. Every class behaves the same way, `LocalTime` included. With `temporal: true` the value is a Temporal object, which is not limited to milliseconds, so sub-millisecond digits survive edits too.
+`patch()` applies fractional seconds as follows (every class, `LocalTime` included):
+
+| Situation | Result |
+|---|---|
+| Value unchanged | digits left alone |
+| Spelling-only difference (`.5` vs `.500`) | not an edit |
+| Sub-millisecond edit (`.123456` → `.123999`) | applied |
+| 750 ms against source `.5` | `.75` (never `.7`) |
+| 750 ms against source `.500` | `.750` |
+| 750 ms against source `.500000` | `.750000` |
+| `.123456` edited to 500 ms | `.5` (significant digits are not padding; same rule as numbers: `1.00` keeps decimals, `1.5` becomes `2`) |
+| Source has no fraction, new value has 0 ms | stays without a fraction |
+| Source has no fraction, new value has non-zero ms | written in its minimal form |
+
+Use [`minimumTimeDecimals`](Formatting.md#minimumtimedecimals) when a document wants a wider fraction. With `temporal: true` the value is a Temporal object, which is not limited to milliseconds, so sub-millisecond digits survive edits too.
 
 The `minimumTimeDecimals` formatting option sets a floor on the written fractional-second digits, independently of `minimumDecimals`, which applies to numbers. See [`minimumTimeDecimals`](Formatting.md#minimumtimedecimals).
 
@@ -107,4 +121,4 @@ patch('z = 2024-01-15T10:30:00+05:30\n', { z: Temporal.PlainDate.from('2025-06-0
 
 Date/time handling is often paired with the `integersAsBigInt` option which controls how TOML integers are represented in JS.
 
-See the [main README](../README.md#parse) for details on `ParseOptions`.
+See the [API reference](API.md#parsevalue-options) for details on `ParseOptions`.

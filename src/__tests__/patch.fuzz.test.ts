@@ -1732,14 +1732,13 @@ test('regression for fuzz seed 1024477 (table to AOT misplaces a nested sub-tabl
 
 // Regression for fuzz seed 1137525: the diff emits `Remove[1], Add[2], Add[3],
 // Remove[6]` for a multiline array where a duplicate scalar was inserted and a
-// scalar was removed.  reorder() used to move the higher-index `Remove[6]` in
-// front of the two Adds, so it was applied against the ORIGINAL array — index 6
-// is `"g"`, not the surplus duplicate `"f"` (source index 5) — and the wrong
-// element was removed.  The fix: reorder() now treats a same-array Add or Move
+// scalar was removed.  reorder() must not move the higher-index `Remove[6]` in
+// front of the two Adds: that applies it against the ORIGINAL array — index 6
+// is `"g"`, not the surplus duplicate `"f"` (source index 5) — and removes the
+// wrong element.  reorder() treats a same-array Add or Move
 // as a barrier (a Remove emitted after it is in post-shift coordinates and must
 // stay after it), while still crossing length-preserving Edits (seed 50448) and
-// Adds/Moves in a DIFFERENT array context (seeds 84522/473477).  The naive
-// `removedBefore--` unconditional (commit d17e606) regressed seeds 761/3093.
+// Adds/Moves in a DIFFERENT array context (seeds 84522/473477).
 test('regression for fuzz seed 1137525 (remove leaps past interleaved adds on reorder)', () => {
   // `"b"` becomes `"c"` (a duplicate of the existing `"c"`), `["x"]` is
   // inserted, a second `"c"` is inserted, and `"f"` is dropped.  The diff

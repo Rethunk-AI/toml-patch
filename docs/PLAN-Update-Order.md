@@ -11,7 +11,7 @@
 
 ## Overview
 
-[Issue #174](https://github.com/DecimalTurn/toml-patch/issues/174) asks for `patch()` to honour the key
+`patch()` must honour the key
 order of the JS object it is given, rather than always preserving the existing document's order:
 
 > Re-order all elements in the TOML output based on the order in the JS object even if those haven't

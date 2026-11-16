@@ -376,12 +376,6 @@ export function detectIndentWidth(tomlString: string, syntaxTree?: Iterable<any>
 }
 
 /**
- * Validates a format object and warns about unsupported properties.
- * Throws errors for supported properties with invalid types.
- * @param format - The format object to validate
- * @returns The validated format object with only supported properties and correct types
- */
-/**
  * Spellings accepted for `newLine`, mapped to the line ending they denote.
  * A Map rather than an object literal so that a key like `constructor` cannot
  * resolve through Object.prototype.
@@ -415,6 +409,12 @@ export function normalizeNewLine(value: string): string {
   return resolved;
 }
 
+/**
+ * Validates a format object and warns about unsupported properties.
+ * Throws errors for supported properties with invalid types.
+ * @param format - The format object to validate
+ * @returns The validated format object with only supported properties and correct types
+ */
 export function validateFormatObject(format: any): any {
   if (!format || typeof format !== 'object') {
     return {};
@@ -655,7 +655,7 @@ export class TomlFormat {
   /**
    * Whether `patch()` should reorder root key-values, `[table]`/`[[array]]` section blocks,
    * and rows inside table bodies to match the key order of the JS object passed to `patch()`,
-   * carrying each entry's owned comments along with it (see docs/CommentOwnership.md).
+   * carrying each entry's owned comments along with it (see docs/Comment-Ownership.md).
    *
    * Off by default: with the option unset or `false`, `patch()` only ever changes values that
    * actually differ between the existing document and the updated object, preserving the

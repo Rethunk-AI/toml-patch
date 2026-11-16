@@ -23,9 +23,9 @@ correctly (see `src/__tests__/fuzz-patch.ts` and its `randomizer.ts`).
 6. **Run** the test to make sure it now passes, *and* re-run the specific seed
    to confirm the seed passes too.
 
-Once every failing seed in a window is fixed and each previously-failing seed
+Once every failing seed in a window is fixed and each of those seeds
 re-runs clean, the window is done — there is no need to re-sweep the *entire*
-range a second time. For variant 1, check just the previously failing seeds
+range a second time. For variant 1, check just the seeds that failed in that window
 with `scripts/fuzz-run1.ts --seed <N> --to <N>`. For variant 5, use
 `scripts/fuzz-run5.ts --seed <N> --to <N>`. A fresh full sweep only matters
 when you change core logic and want a broad regression signal.
@@ -161,18 +161,16 @@ npx -y tsx scripts/distill-profile.ts --seed <N> --profile aot --out src/__tests
 
 `src/__tests__/fuzz-composable.test.ts` pins selected seeds so changes to the
 profiling and composition code do not silently change existing fuzz inputs.
-SHA-256 expectations cover the default generator, composed source transforms
-and AOT generator. The `legacySeedExpectations` table checks mutation
-descriptions and format settings for variants 1 through 4. Additional fixed
-fingerprints cover complete mutation plans, including generated values, and
-resolved format settings for variants 1 through 4 at seeds 0, 3 and 19506
-(three mutations), and for every composable profile at seeds 1, 3 and 4 (one
-mutation). The variant 1 through 4 fingerprints were captured from the original
-runner on `latest` commit `83cc17388601db8091c0014a6aa80d01307a3e8d`; the
-`general-format` profile is also checked against the original variant 4 runner
-at matching seeds. The AOT profiles have no pre-refactor equivalent, so their
-fingerprints check determinism rather than migration parity. These are static
-goldens, not a live branch comparison.
+These are static goldens, not a live branch comparison.
+
+| What is pinned | Coverage |
+|---|---|
+| SHA-256 of generated source | default generator, composed source transforms, AOT generator |
+| `legacySeedExpectations` | mutation descriptions and format settings for variants 1–4 |
+| Complete mutation plans (including generated values) and resolved format settings | variants 1–4 at seeds 0, 3, 19506 (three mutations); every composable profile at seeds 1, 3, 4 (one mutation) |
+| Variants 1–4 fingerprints | captured from the original runner on `latest` commit `83cc17388601db8091c0014a6aa80d01307a3e8d` |
+| `general-format` profile | also checked against the original variant 4 runner at matching seeds |
+| AOT profiles | determinism only (no pre-refactor equivalent, so not migration parity) |
 
 When adding a numbered variant or profile, extend these checks with fixed-seed
 expectations for its generator or transforms, complete mutation plans and
@@ -317,21 +315,17 @@ pnpm run seed-toml -- 16552
 
 ### Distillation of seed tests
 
-Because the TOML input might be too big to be a minimal example of the bug, we
-must start removing elements of the TOML input, simplifying keys to
-make it more readable to a human (unless the keys have special characters or arrangement that are needed to trigger the bug) and remove mutations that don't contribute to the bug. After every change to the originally created test, we make
-sure that the test still fails in the same way as the original. When we reach
-the simplest version of the test we can think of, that is when the test is
-considered distilled.
-Once the test is distilled, commit it (in its failing, `.fails`-marked state) as
-a self-contained regression: the distilled TOML + mutations together with the
-`src/__tests__/patch.fuzz.test.ts` entry. This keeps a clean history where every bug
-lands as one "failing test" commit followed by one "fix" commit, and lets the
-distillation be reviewed independently of the eventual code change.
-Note that if we then fix the code to make the test pass and the seed still
-doesn't pass, this would indicate that the seed was illustrating more than one
-problem, so we would need to restart the process of distillation for this issue
-as well, starting from the full TOML input.
+The seed TOML is often too big to be a minimal example of the bug. Distill it as follows:
+
+1. Remove elements of the TOML input.
+2. Simplify keys so a human can read them, unless the keys' special characters or arrangement are needed to trigger the bug.
+3. Remove mutations that don't contribute to the bug.
+4. After every change, confirm the test still fails in the same way as the original.
+5. Stop when the test is the simplest version that still fails.
+
+Commit the distilled test (failing, `.fails`-marked) as a self-contained regression: the distilled TOML + mutations together with the `src/__tests__/patch.fuzz.test.ts` entry. Every bug then lands as one "failing test" commit followed by one "fix" commit, and the distillation can be reviewed independently of the code change.
+
+If the test then passes and the seed still fails, the seed illustrated more than one problem: restart distillation from the full TOML input.
 
 
 ### Fixing the bug

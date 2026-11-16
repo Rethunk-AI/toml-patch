@@ -42,10 +42,10 @@ multi-line (a compact parent holding a multiline descendant).
 
 ## 2. Generated multiline containers align with the key that owns them (fe59f4a)
 
-The library now guarantees that a generated multiline container breaks its rows and closes its bracket
-in the column of the key it belongs to. Before this change the nested rows were laid out from the
-enclosing container's indent and root key-values were never normalized at all, so a generated
-`b = [ ... ]` could end its rows in an arbitrary column.
+The library guarantees that a generated multiline container breaks its rows and closes its bracket
+in the column of the key it belongs to. Nested rows take that key's column rather than the
+enclosing container's indent, and root key-values are normalized the same way, so a generated
+`b = [ ... ]` cannot end its rows in an arbitrary column.
 
 `normalizeInlineContainerRows(container, anchorColumn, indentWidth, bracketSpacing)` in
 `src/formatter.ts` is the single layout rule:

@@ -170,14 +170,6 @@ function encodeNonFinite(value: number): string {
 }
 
 /**
- * Encodes a string while preserving the source's literal style. A multiline
- * literal (`'''`) keeps its delimiters and leading newline, and a single-line
- * literal (`'`) stays single-quoted. Backslashes are left untouched because
- * literal strings do not escape, matching the full patch(). A value that can no
- * longer be written literally grows to a multiline literal where possible and
- * falls back to a basic string otherwise.
- */
-/**
  * The newline to write directly after a multiline delimiter.
  *
  * TOML drops a newline that immediately follows the opening delimiter, so a
@@ -191,6 +183,14 @@ function multilineLeadingNewLine(existingRaw: string, delimiter: string, content
   return content.startsWith('\n') ? '\n' : '';
 }
 
+/**
+ * Encodes a string while preserving the source's literal style. A multiline
+ * literal (`'''`) keeps its delimiters and leading newline, and a single-line
+ * literal (`'`) stays single-quoted. Backslashes are left untouched because
+ * literal strings do not escape, matching the full patch(). A value that can no
+ * longer be written literally grows to a multiline literal where possible and
+ * falls back to a basic string otherwise.
+ */
 function encodeString(value: string, existingRaw?: string): string {
   if (existingRaw) {
     if (existingRaw.startsWith("'''")) {

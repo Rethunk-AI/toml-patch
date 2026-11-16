@@ -318,15 +318,6 @@ export function resolveInlineElementGroups(
 }
 
 /**
- * Finds the nearest Document/Table/TableArray ancestor whose OWN `.items`
- * holds the top-level Block from which `target` is reachable, following
- * KeyValue.value / InlineTable.items / InlineArray.items / InlineItem.item
- * links down through any nesting depth. This is where the parser files
- * comments hoisted out of `target` (Background, case 4) — regardless of how
- * deeply `target` is nested inside other inline containers, they always
- * flatten up to the same enclosing Document/Table.
- */
-/**
  * Finds the InlineItem that wraps `target` (an InlineTable/InlineArray)
  * inside its own parent container's items, searching the whole tree.
  */
@@ -346,6 +337,15 @@ function findWrapperItem(root: TreeNode, target: TreeNode): InlineItem | undefin
   return walk(root);
 }
 
+/**
+ * Finds the nearest Document/Table/TableArray ancestor whose OWN `.items`
+ * holds the top-level Block from which `target` is reachable, following
+ * KeyValue.value / InlineTable.items / InlineArray.items / InlineItem.item
+ * links down through any nesting depth. This is where the parser files
+ * comments hoisted out of `target` (Background, case 4) — regardless of how
+ * deeply `target` is nested inside other inline containers, they always
+ * flatten up to the same enclosing Document/Table.
+ */
 export function findHostContainer(root: Document, target: TreeNode): Document | Table | TableArray | undefined {
   function searchValue(value: TreeNode, container: Document | Table | TableArray): Document | Table | TableArray | undefined {
     if (value === target) return container;

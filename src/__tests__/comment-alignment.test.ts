@@ -14,8 +14,8 @@ describe('inline comment alignment', () => {
 
     const value = parse(existing);
 
-    // This row grows beyond the original comment column and previously caused
-    // text/comment-column desync in normalizeInlineCommentAlignmentInString.
+    // This row grows beyond the original comment column, which desyncs
+    // text/comment columns in normalizeInlineCommentAlignmentInString unless alignment is recomputed.
     value.medium = 'a much longer value than before';
 
     const patched = patch(existing, value);

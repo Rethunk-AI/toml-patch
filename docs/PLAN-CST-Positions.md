@@ -281,15 +281,15 @@ resolved first:
   not a pre-emission `loc` mutation. `KeyValue.equals` has the same problem: `applyWrites` adjusts it
   today, so the emitter must derive it from the key text instead.
 
-### Idea 5 — verification is retired from production (already done)
+### Idea 5 — verification is not in the production path
 
-The production retry and verification path has been removed. The historical fuzz suite remains the oracle:
+The production retry and verification path is not in the build. The historical fuzz suite is the oracle:
 
 ```ts
 pnpm run test -- --testNamePattern="historical fuzz seed"
 ```
 
-The old patch-validate module is no longer part of the build. A temporary assertion can still be
+The patch-validate module is not part of the build. A temporary assertion can still be
 added in a development branch if a new fuzz failure needs a round-trip oracle, but it must not return to
 the public patch path.
 
@@ -300,10 +300,10 @@ the public patch path.
 Each phase is independently shippable and independently revertable. None of them changes output until
 Phase 3.
 
-**Phase 0 — ranges, complete (done).** Add `range` to nodes in `parse-toml.ts`. Assert in tests that
+**Phase 0 — ranges.** `range` is on nodes in `parse-toml.ts`. Assert in tests that
 `range` and `loc` agree for every node of every fixture (a locator round-trip). Output identical.
 
-**Phase 1 — dirtiness, complete (done).** Add the `dirty` flag and ancestor propagation to the
+**Phase 1 — dirtiness.** The `dirty` flag and ancestor propagation are on the
 `writer.ts` mutators (`insert`, `remove`, `replace`). Keep the offset system running and authoritative.
 Verify the new signal against the old by asserting that every root the old system marks dirty contains at
 least one node the new one marks dirty. Output identical.

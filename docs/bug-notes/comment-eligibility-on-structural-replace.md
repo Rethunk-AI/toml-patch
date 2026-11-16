@@ -9,7 +9,7 @@
 
 A pre-existing issue found while probing these, unrelated to both, is recorded under "Still open".
 
-Found while verifying a GitHub Copilot review comment on PR #260, which flagged the root cause
+Found while verifying a review comment, which flagged the root cause
 precisely: [`resolveGroups`](../../src/comment-ownership.ts)'s `isEligibleForLeading` predicate
 (used by [`applyContainerMoves`](../../src/update-order.ts)) decides whether a member may adopt an
 adjacent leading comment block via **R2** (leading ownership, see

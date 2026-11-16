@@ -19,8 +19,7 @@ one-off comment skips in `src/patch.ts:817` and `src/writer.ts:198`. Each is a d
 the same question, and none of them handle a comment *above* a key at all.
 
 That is fine while every operation is local (edit a value in place, append a key at the end). It stops
-being fine the moment entries **move**, which is what [issue #174](https://github.com/DecimalTurn/toml-patch/issues/174)
-(`updateOrder`) requires. Today's evidence of the gap, from `src/__tests__/swap-table-keys.test.ts:36-70`:
+being fine the moment entries **move**, which is what `updateOrder` requires. Today's evidence of the gap, from `src/__tests__/swap-table-keys.test.ts:36-70`:
 after swapping two keys, the `# inline B` trailing comment is **deleted outright** and the own-line comments
 stay behind labelling the wrong keys.
 
@@ -366,9 +365,8 @@ required — with implementation notes added inline rather than rewritten from s
 
 The Non-goals section originally below said comment ownership inside inline arrays was "already handled by
 R1 as hoisted comments of the owning key-value" — true for *deleting the whole array*, but concrete testing
-found it false for **deleting one element while the array survives**. This was a real corruption bug,
-verified against `src/comment-ownership.ts`@`46476c5` (no code changed to produce these) before any of the
-below was built:
+found it false for **deleting one element while the array survives** — that path corrupts comments
+(verified against `src/comment-ownership.ts`@`46476c5`, with no code changed to produce these):
 
 ```toml
 xs = [
@@ -382,7 +380,7 @@ xs = [
 |---|---|
 | `xs.splice(2, 1)` — drop the **last** element | Correct: `1, # one` / `2, # two` survive untouched. |
 | `xs.splice(1, 1)` — drop the **middle** element | `# two` (owned by the deleted `2`) survives, misindented, floating mid-array before the closing bracket. |
-| `xs.splice(0, 1)` — drop the **first** element | `# one` (owned by the deleted `1`) survives on the **same line as the closing `]`** — a different node's line, not even adjacent to where `1` used to be. |
+| `xs.splice(0, 1)` — drop the **first** element | `# one` (owned by the deleted `1`) survives on the **same line as the closing `]`** — a different node's line, not even adjacent to the line `1` occupied. |
 
 ### Root cause: this is the same Move-doesn't-carry-comments gap, one level deeper
 

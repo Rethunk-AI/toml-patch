@@ -4177,7 +4177,7 @@ function applyChanges(
 
       // A KeyValue holds its Key directly, while a [table]/[[array]] wraps it in a
       // TableKey/TableArrayKey. Reach the inner Key either way — reading `.key.value` off a
-      // section gives undefined, which used to make preserveEscapedKeyRaw throw on `.map`.
+      // section gives undefined, which would make preserveEscapedKeyRaw throw on `.map`.
       const parentHolder = parent.key;
       const replacementHolder = replacement.key;
       const parentKey = hasItem(parentHolder) ? parentHolder.item : parentHolder;

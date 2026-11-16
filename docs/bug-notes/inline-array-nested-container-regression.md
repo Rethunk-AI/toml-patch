@@ -33,7 +33,7 @@ which pre-`ed99db0` only ever ran against `root.items` (literally `Document.item
    were final, misattributing comment ownership and eventually colliding two comments onto the same
    line — which the stringifier can't represent, dropping content.
 
-Fix, in two parts:
+Fix, in three parts:
 
 - `remove()`/`insert()` in `src/writer.ts` gained an optional `hostItems` parameter, used instead of
   `root.items` when provided. `comment-ownership.ts`'s `removeMember()`/`moveInlineElement()` now pass

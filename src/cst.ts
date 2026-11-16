@@ -332,9 +332,8 @@ export function isInlineTable(node: TreeNode): node is InlineTable {
 // naming the subtype makes the array-vs-table distinction visible in type
 // annotations without requiring an extra runtime check.
 //
-// The type parameter is fixed to KeyValue, which means the unsafe cast
-// `existing.item as KeyValue` that previously appeared in patch.ts is
-// unnecessary — the type system already guarantees it.
+// The type parameter is fixed to KeyValue, so an `existing.item as KeyValue`
+// cast is unnecessary — the type system already guarantees it.
 //
 // { a="b"   ,    c =    "d"   }
 //   ^------^     ^--------^   ← each element is an InlineTableItem

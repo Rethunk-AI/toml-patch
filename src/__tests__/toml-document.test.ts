@@ -2093,9 +2093,9 @@ describe('TomlDocument', () => {
 
   // toJsObject() hands out plain Date objects, but the writer derives a value's
   // TOML text from toISOString(), which the TOML date classes override to return
-  // the original spelling. A plain Date handed back therefore used to write as a
-  // full offset date-time: a single sibling edit in an inline array rewrote every
-  // date in it, e.g. `1986-03-02` became `1986-03-02T00:00:00.000Z`.
+  // the original spelling. A sibling edit in an inline array must not rewrite
+  // the other dates (a plain Date's toISOString() would turn `1986-03-02` into
+  // `1986-03-02T00:00:00.000Z`).
   describe('date representation through read-modify-write', () => {
     const stamps = 'stamps = [ 1986-03-02, 07:32:00, 1979-05-27T07:32:00, 1979-05-27T07:32:00Z, "tail" ]\n';
 
