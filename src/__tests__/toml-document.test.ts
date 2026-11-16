@@ -16,7 +16,6 @@ describe('TomlDocument', () => {
     expect(doc.toJsObject).toEqual(simpleObj);
   });
 
-  it('parses raw UTF-8 bytes to JS object', () => {
   it('keeps an own __proto__ key when a date routes the object through the date restore', () => {
     const doc = new TomlDocument("at = 2020-01-01T00:00:00Z\n");
     const updated: any = doc.toJsObject;
@@ -51,6 +50,7 @@ describe('TomlDocument', () => {
     expect(doc.toTomlString).toBe(source);
   });
 
+  it('parses raw UTF-8 bytes to JS object', () => {
     const bytes = new TextEncoder().encode(simpleToml);
     const doc = new TomlDocument(bytes);
     expect(doc.toJsObject).toEqual(simpleObj);
@@ -1075,6 +1075,21 @@ describe('TomlDocument', () => {
     });
   });
 
+  it("accepts replacement text whose line endings differ from the document's", () => {
+    const doc = new TomlDocument('a = 1\r\n');
+    doc.update("[t]\nb = 2\r\n");
+
+    expect(doc.toTomlString).toBe("[t]\nb = 2\r\n");
+  });
+
+  it('accepts a mixed-ending replacement without inventing a bare CR', () => {
+    const doc = new TomlDocument('a = 1\r\n');
+    doc.update("b = 2\nc = 3\r\n");
+
+    expect(doc.toTomlString).toBe("b = 2\nc = 3\r\n");
+    expect(doc.toJsObject).toEqual({ b: 2, c: 3 });
+  });
+
   describe('update preserves unchanged CST nodes', () => {
     it('preserves unchanged sections when updating a different section', () => {
       const toml = dedent`
@@ -1164,21 +1179,6 @@ describe('TomlDocument', () => {
       
       // Change only the comment at the end
       const updatedToml = dedent`
-  it("accepts replacement text whose line endings differ from the document's", () => {
-    const doc = new TomlDocument('a = 1\r\n');
-    doc.update("[t]\nb = 2\r\n");
-
-    expect(doc.toTomlString).toBe("[t]\nb = 2\r\n");
-  });
-
-  it('accepts a mixed-ending replacement without inventing a bare CR', () => {
-    const doc = new TomlDocument('a = 1\r\n');
-    doc.update("b = 2\nc = 3\r\n");
-
-    expect(doc.toTomlString).toBe("b = 2\nc = 3\r\n");
-    expect(doc.toJsObject).toEqual({ b: 2, c: 3 });
-  });
-
         # Comment at the start
         [section]
         key = "value"
