@@ -125,11 +125,11 @@ function setAt(obj: any, path: (string | number)[], value: unknown): void {
     const seg = path[i];
     const next = path[i + 1];
     if (typeof next === 'number') {
-      if (!Array.isArray(cur[seg])) cur[seg] = [];
-      cur = cur[seg];
+      if (!Array.isArray(cur[seg!])) cur[seg!] = [];
+      cur = cur[seg!];
     } else {
-      if (cur[seg] == null || typeof cur[seg] !== 'object' || Array.isArray(cur[seg])) cur[seg] = {};
-      cur = cur[seg];
+      if (cur[seg!] == null || typeof cur[seg!] !== 'object' || Array.isArray(cur[seg!])) cur[seg!] = {};
+      cur = cur[seg!];
     }
   }
   const last = path[path.length - 1];
@@ -171,25 +171,25 @@ for (let m = 0; m < mutationCount; m++) {
   else if (kindRoll < 0.9) kind = 'add-array-item';
   else kind = 'remove-array-item';
 
-  const last = path[path.length - 1];
+  const last = path![path!.length - 1];
   if (kind === 'add-key' && typeof last === 'number') continue;
   if (kind === 'delete-key') {
     if (typeof last === 'number') {
-      (getAt(obj, path.slice(0, -1)) as any[]).splice(last as number, 1);
+      (getAt(obj, path!.slice(0, -1)) as any[]).splice(last as number, 1);
     } else {
-      const parent = getAt(obj, path.slice(0, -1));
-      if (parent && typeof parent === 'object') delete (parent as any)[last];
+      const parent = getAt(obj, path!.slice(0, -1));
+      if (parent && typeof parent === 'object') delete (parent as any)[last!];
     }
-    mutations.push(`delete ${path.join('.')}`);
+    mutations.push(`delete ${path!.join('.')}`);
   } else if (kind === 'change-value' || kind === 'change-type') {
-    setAt(obj, path, randomValue(mutationRng));
-    mutations.push(`${kind} at ${path.join('.')}`);
+    setAt(obj, path!, randomValue(mutationRng));
+    mutations.push(`${kind} at ${path!.join('.')}`);
   } else if (kind === 'add-array-item') {
-    const arr = getAt(obj, path.slice(0, -1)) as any[];
-    if (arr) { arr.splice(last as number, 0, randomValue(mutationRng)); mutations.push(`add-array-item at ${path.join('.')}`); }
+    const arr = getAt(obj, path!.slice(0, -1)) as any[];
+    if (arr) { arr.splice(last as number, 0, randomValue(mutationRng)); mutations.push(`add-array-item at ${path!.join('.')}`); }
   } else if (kind === 'remove-array-item') {
-    const arr = getAt(obj, path.slice(0, -1)) as any[];
-    if (arr && (last as number) < arr.length) { arr.splice(last as number, 1); mutations.push(`remove-array-item at ${path.join('.')}`); }
+    const arr = getAt(obj, path!.slice(0, -1)) as any[];
+    if (arr && (last as number) < arr.length) { arr.splice(last as number, 1); mutations.push(`remove-array-item at ${path!.join('.')}`); }
   }
 }
 

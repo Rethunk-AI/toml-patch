@@ -79,8 +79,8 @@ describe('truncateCst', () => {
     
     // Should include: Comment 1, section1 (with key1 and Comment 2 inside its items)
     expect(truncated).toHaveLength(2); // Comment, Table
-    expect(truncated[0].type).toBe(NodeType.Comment);
-    expect(truncated[1].type).toBe(NodeType.Table);
+    expect(truncated[0]!.type).toBe(NodeType.Comment);
+    expect(truncated[1]!.type).toBe(NodeType.Table);
     expect(lastEndPosition).not.toBeNull();
   });
 

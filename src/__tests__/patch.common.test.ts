@@ -1158,7 +1158,7 @@ describe.each(implementations)('Date/time value edits (%s patch)', (_label, patc
     const currentDate = value.start_date as Date;
     const nextDayTime = currentDate.getTime() + 24 * 60 * 60 * 1000;
     const nextDayStr = new Date(nextDayTime).toISOString().split('T')[0];
-    const nextDay = new LocalDate(nextDayStr);
+    const nextDay = new LocalDate(nextDayStr!);
 
     value.start_date = nextDay;
 

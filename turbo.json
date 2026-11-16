@@ -1,0 +1,7 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "tasks": {
+    "typecheck": { "outputs": ["*.tsbuildinfo"] },
+    "build": { "outputs": ["dist/**"] }
+  }
+}

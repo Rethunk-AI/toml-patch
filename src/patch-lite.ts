@@ -8,10 +8,10 @@ import { hasLeadingBom, UTF8_BOM } from './decode-utf8';
 import { attachSources } from './cst-source';
 import {
   NodeType,
-  Document,
-  Block,
-  TreeNode,
-  Value,
+  type Document,
+  type Block,
+  type TreeNode,
+  type Value,
   isKeyValue,
   isInlineItem,
   isValue

@@ -22,7 +22,7 @@ function mutate(seed: number): string {
     const op = rand(3);
     if (op === 0) src = src.slice(0, at) + piece + src.slice(at);
     else if (op === 1) src = src.slice(0, at) + src.slice(at + 1 + rand(4));
-    else src = src.slice(0, at) + piece + src.slice(at + piece.length);
+    else src = src.slice(0, at) + piece + src.slice(at + piece!.length);
   }
   return src;
 }

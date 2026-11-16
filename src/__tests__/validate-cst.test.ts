@@ -1,8 +1,8 @@
 import {
-  Document, NodeType, TreeNode, Table, TableArray,
-  InlineArray, InlineTable, InlineItem, KeyValue, isComment
+  type Document, NodeType, type TreeNode, type Table, type TableArray,
+  type InlineArray, type InlineTable, type InlineItem, type KeyValue, isComment
 } from '../cst';
-import { Location, Position } from '../location';
+import type { Location,Position } from '../location';
 import parseTOML from '../parse-toml';
 import { patchCst } from '../patch';
 import { TomlFormat } from '../toml-format';
@@ -183,9 +183,9 @@ function findNonAscendingMemberOrder(doc: Document): string[] {
     for (let i = 1; i < members.length; i++) {
       const prev = members[i - 1];
       const curr = members[i];
-      if (!posLe(prev.loc.end, curr.loc.start)) {
+      if (!posLe(prev!.loc.end, curr!.loc.start)) {
         violations.push(
-          `${curr.type} at ${locStr(curr.loc)} is not properly after preceding member ${prev.type} at ${locStr(prev.loc)}`
+          `${curr!.type} at ${locStr(curr!.loc)} is not properly after preceding member ${prev!.type} at ${locStr(prev!.loc)}`
         );
       }
     }
@@ -219,9 +219,9 @@ function findOverlappingSiblingMembers(doc: Document): string[] {
     for (let i = 1; i < members.length; i++) {
       const prev = members[i - 1];
       const curr = members[i];
-      if (curr.loc.start.line <= prev.loc.end.line) {
+      if (curr!.loc.start.line <= prev!.loc.end.line) {
         violations.push(
-          `${curr.type} at ${locStr(curr.loc)} overlaps preceding sibling ${prev.type} at ${locStr(prev.loc)}`
+          `${curr!.type} at ${locStr(curr!.loc)} overlaps preceding sibling ${prev!.type} at ${locStr(prev!.loc)}`
         );
       }
     }

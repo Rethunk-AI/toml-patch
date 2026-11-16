@@ -1,10 +1,10 @@
 import parseTOML from '../parse-toml';
 import {
-  Table,
-  KeyValue,
-  InlineArray,
-  DateTime,
-  TreeNode,
+  type Table,
+  type KeyValue,
+  type InlineArray,
+  type DateTime,
+  type TreeNode,
   hasItems,
   isInlineItem,
   isKeyValue,

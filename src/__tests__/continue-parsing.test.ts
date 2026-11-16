@@ -127,14 +127,14 @@ describe('continueParsingTOML', () => {
     const completeCst = [...continueParsingTOML(initialCst, `b = 2\n`, { line: 3, column: 0 })];
 
     expect(completeCst).toHaveLength(2);
-    expect(completeCst[0].loc.start).toEqual({ line: 1, column: 0 });
-    expect(completeCst[1].loc.start).toEqual({ line: 3, column: 0 });
+    expect(completeCst[0]!.loc.start).toEqual({ line: 1, column: 0 });
+    expect(completeCst[1]!.loc.start).toEqual({ line: 3, column: 0 });
   });
 
   it('offsets the first suffix line column by the start column', () => {
     const completeCst = [...continueParsingTOML([], `key = "value"\n`, { line: 2, column: 4 })];
 
     expect(completeCst).toHaveLength(1);
-    expect(completeCst[0].loc.start).toEqual({ line: 2, column: 4 });
+    expect(completeCst[0]!.loc.start).toEqual({ line: 2, column: 4 });
   });
 });

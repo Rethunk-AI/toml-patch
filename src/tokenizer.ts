@@ -1,15 +1,16 @@
-import { Location, Locator, findPosition } from './location';
+import { type Location, type Locator, findPosition } from './location';
 import ParseError from './parse-error';
 
-export enum TokenType {
-  Bracket = 'Bracket',
-  Curly = 'Curly',
-  Equal = 'Equal',
-  Comma = 'Comma',
-  Dot = 'Dot',
-  Comment = 'Comment',
-  Literal = 'Literal'
-}
+export const TokenType = {
+  Bracket: 'Bracket',
+  Curly: 'Curly',
+  Equal: 'Equal',
+  Comma: 'Comma',
+  Dot: 'Dot',
+  Comment: 'Comment',
+  Literal: 'Literal',
+} as const
+export type TokenType = (typeof TokenType)[keyof typeof TokenType]
 
 export interface Token {
   type: TokenType;
@@ -106,9 +107,9 @@ export function* tokenize(input: string, newlineState?: NewlineScanState): Itera
     } else if (code === CH_LF) {
       recordNewline(pos);
     } else if (code === CH_LBRACKET || code === CH_RBRACKET) {
-      yield { type: TokenType.Bracket, raw: input[pos], loc: locate(pos, pos + 1) };
+      yield { type: TokenType.Bracket, raw: input[pos]!, loc: locate(pos, pos + 1) };
     } else if (code === CH_LBRACE || code === CH_RBRACE) {
-      yield { type: TokenType.Curly, raw: input[pos], loc: locate(pos, pos + 1) };
+      yield { type: TokenType.Curly, raw: input[pos]!, loc: locate(pos, pos + 1) };
     } else if (code === CH_EQUAL) {
       yield { type: TokenType.Equal, raw: '=', loc: locate(pos, pos + 1) };
     } else if (code === CH_COMMA) {
@@ -317,7 +318,7 @@ export function* tokenize(input: string, newlineState?: NewlineScanState): Itera
     const ch = input[pos];
 
     // First, check for invalid characters
-    if (!IS_VALID_LEADING_CHARACTER.test(ch)) {
+    if (!IS_VALID_LEADING_CHARACTER.test(ch!)) {
       throw new ParseError(
         input,
         findPosition(lines, pos),

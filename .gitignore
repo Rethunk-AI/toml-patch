@@ -1,5 +1,7 @@
 dist/
 local/
+.turbo
+
 
 node_modules
 .DS_store

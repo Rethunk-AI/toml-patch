@@ -1,12 +1,12 @@
 import {
-  TreeNode,
+  type TreeNode,
   hasItems,
   isInlineItem,
   isKeyValue,
   isTable,
   isTableArray
 } from './cst';
-import { Position } from './location';
+import type { Position } from './location';
 
 const nodeSources = new WeakMap<TreeNode, string>();
 const nodeParents = new WeakMap<TreeNode, TreeNode>();
@@ -14,7 +14,7 @@ const linkedRoots = new WeakSet<TreeNode>();
 const originalChildren = new WeakMap<TreeNode, TreeNode[]>();
 
 function positionToOffset(lineStarts: number[], position: Position): number {
-  return (lineStarts[position.line - 1] ?? lineStarts[lineStarts.length - 1]) + position.column;
+  return (lineStarts[position.line - 1] ?? lineStarts[lineStarts.length - 1])! + position.column;
 }
 
 export function attachSource(node: TreeNode, source: string): void {
@@ -65,10 +65,10 @@ export function createSourceAttacher(source: string): (node: TreeNode) => void {
       } else if (isTable(current) || isTableArray(current)) {
         stack.push(current.key);
         const items = current.items as TreeNode[];
-        for (let index = items.length - 1; index >= 0; index--) stack.push(items[index]);
+        for (let index = items.length - 1; index >= 0; index--) stack.push(items[index]!);
       } else if (hasItems(current)) {
         const items = current.items as TreeNode[];
-        for (let index = items.length - 1; index >= 0; index--) stack.push(items[index]);
+        for (let index = items.length - 1; index >= 0; index--) stack.push(items[index]!);
       }
     }
   };

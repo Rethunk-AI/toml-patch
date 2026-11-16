@@ -1,31 +1,32 @@
-import { Location } from './location';
+import type { Location } from './location';
 
-export enum NodeType {
-  Document = 'Document',
-  Table = 'Table',
-  TableKey = 'TableKey',
+export const NodeType = {
+  Document: 'Document',
+  Table: 'Table',
+  TableKey: 'TableKey',
   /**
    * Array of Tables node
    * More info: https://toml.io/en/latest#array-of-tables
    */
-  TableArray = 'TableArray',
-  TableArrayKey = 'TableArrayKey',
-  KeyValue = 'KeyValue',
-  Key = 'Key',
-  String = 'String',
-  Integer = 'Integer',
-  Float = 'Float',
-  Boolean = 'Boolean',
-  DateTime = 'DateTime',
-  InlineArray = 'InlineArray',
-  InlineItem = 'InlineItem',
-  InlineTable = 'InlineTable',
+  TableArray: 'TableArray',
+  TableArrayKey: 'TableArrayKey',
+  KeyValue: 'KeyValue',
+  Key: 'Key',
+  String: 'String',
+  Integer: 'Integer',
+  Float: 'Float',
+  Boolean: 'Boolean',
+  DateTime: 'DateTime',
+  InlineArray: 'InlineArray',
+  InlineItem: 'InlineItem',
+  InlineTable: 'InlineTable',
   /**
    * Comment node
    * More info: https://toml.io/en/latest#comment
    */
-  Comment = 'Comment'
-}
+  Comment: 'Comment',
+} as const
+export type NodeType = (typeof NodeType)[keyof typeof NodeType]
 
 //
 // Concrete Syntax Tree
@@ -40,7 +41,7 @@ export type CST = Iterable<Block>;
 // Top-level document that stores CST nodes
 //
 export interface Document extends TreeNode {
-  type: NodeType.Document;
+  type: typeof NodeType.Document;
   items: Array<Block>;
 }
 export function isDocument(node: TreeNode): node is Document {
@@ -61,7 +62,7 @@ export function isDocument(node: TreeNode): node is Document {
 // [b]
 //
 export interface Table extends TreeNode {
-  type: NodeType.Table;
+  type: typeof NodeType.Table;
   key: TableKey;
   items: RowItem[];
 }
@@ -80,7 +81,7 @@ export function isTable(node: TreeNode): node is Table {
 // ^-------^
 //
 export interface TableKey extends TreeNode {
-  type: NodeType.TableKey;
+  type: typeof NodeType.TableKey;
   item: Key;
   /** Whitespace between the brackets and the key (`[ a ]`), which the key's raw text leaves out. */
   padding?: [string, string];
@@ -103,7 +104,7 @@ export function isTableKey(node: TreeNode): node is TableKey {
 // [[array]]
 //
 export interface TableArray extends TreeNode {
-  type: NodeType.TableArray;
+  type: typeof NodeType.TableArray;
   key: TableArrayKey;
   items: RowItem[];
 }
@@ -127,7 +128,7 @@ export function isTableArray(node: TreeNode): node is TableArray {
 // ^---------^
 //
 export interface TableArrayKey extends TreeNode {
-  type: NodeType.TableArrayKey;
+  type: typeof NodeType.TableArrayKey;
   item: Key;
   /** Whitespace between the brackets and the key (`[ a ]`), which the key's raw text leaves out. */
   padding?: [string, string];
@@ -145,7 +146,7 @@ export function isTableArrayKey(node: TreeNode): node is TableArrayKey {
 // ^---------^
 //
 export interface KeyValue extends TreeNode {
-  type: NodeType.KeyValue;
+  type: typeof NodeType.KeyValue;
   key: Key;
   value: Value;
 
@@ -162,7 +163,7 @@ export function isKeyValue(node: TreeNode): node is KeyValue {
 // Store raw key and parts (from dots)
 //
 export interface Key extends TreeNode {
-  type: NodeType.Key;
+  type: typeof NodeType.Key;
   raw: string;
 
   // Note: Array for keys with dots
@@ -182,7 +183,7 @@ export function isKey(node: TreeNode): node is Key {
 //     ^------^
 //
 export interface String extends TreeNode {
-  type: NodeType.String;
+  type: typeof NodeType.String;
   raw: string;
   value: string;
 }
@@ -194,7 +195,7 @@ export function isString(node: TreeNode): node is String {
 // Integer
 //
 export interface Integer extends TreeNode {
-  type: NodeType.Integer;
+  type: typeof NodeType.Integer;
   raw: string;
   value: number | bigint;
 }
@@ -206,7 +207,7 @@ export function isInteger(node: TreeNode): node is Integer {
 // Float
 //
 export interface Float extends TreeNode {
-  type: NodeType.Float;
+  type: typeof NodeType.Float;
   raw: string;
   value: number;
   /** Sign prefix for NaN values: '+' for +nan, '-' for -nan, undefined for nan */
@@ -220,7 +221,7 @@ export function isFloat(node: TreeNode): node is Float {
 // Boolean
 //
 export interface Boolean extends TreeNode {
-  type: NodeType.Boolean;
+  type: typeof NodeType.Boolean;
 
   // Only `true` and `false` are permitted
   // -> don't need separate raw and value
@@ -237,7 +238,7 @@ export function isBoolean(node: TreeNode): node is Boolean {
 // are handled via raw
 //
 export interface DateTime extends TreeNode {
-  type: NodeType.DateTime;
+  type: typeof NodeType.DateTime;
   raw: string;
   value: Date;
 }
@@ -249,7 +250,7 @@ export function isDateTime(node: TreeNode): node is DateTime {
 // InlineArray
 //
 export interface InlineArray<TItem = TreeNode> extends TreeNode {
-  type: NodeType.InlineArray;
+  type: typeof NodeType.InlineArray;
   items: InlineArrayItem<TItem>[];
 }
 export function isInlineArray(node: TreeNode): node is InlineArray {
@@ -293,7 +294,7 @@ export function isInlineArray(node: TreeNode): node is InlineArray {
 //   wrapper itself (which has no .items of its own).
 //
 export interface InlineItem<TItem = TreeNode> extends TreeNode {
-  type: NodeType.InlineItem;
+  type: typeof NodeType.InlineItem;
   item: TItem;
   comma: boolean;
 }
@@ -319,7 +320,7 @@ export interface InlineArrayItem<TItem = TreeNode> extends InlineItem<TItem> {}
 // InlineTable
 //
 export interface InlineTable extends TreeNode {
-  type: NodeType.InlineTable;
+  type: typeof NodeType.InlineTable;
   items: InlineTableItem[];
 }
 export function isInlineTable(node: TreeNode): node is InlineTable {
@@ -349,7 +350,7 @@ export interface InlineTableItem extends InlineItem<KeyValue> {}
 // ^------------^
 //
 export interface Comment extends TreeNode {
-  type: NodeType.Comment;
+  type: typeof NodeType.Comment;
   raw: string;
 }
 export function isComment(node: TreeNode): node is Comment {

@@ -15,10 +15,10 @@ function isHex(ch: string): boolean {
 }
 
 function hexVal4(s: string, i: number): number {
-  return (HEX_VAL[s.charCodeAt(i)] << 12) |
-         (HEX_VAL[s.charCodeAt(i + 1)] << 8) |
-         (HEX_VAL[s.charCodeAt(i + 2)] << 4) |
-          HEX_VAL[s.charCodeAt(i + 3)];
+  return (HEX_VAL[s.charCodeAt(i)]! << 12) |
+         (HEX_VAL[s.charCodeAt(i + 1)]! << 8) |
+         (HEX_VAL[s.charCodeAt(i + 2)]! << 4) |
+          HEX_VAL[s.charCodeAt(i + 3)]!;
 }
 
 export function parseString(raw: string): string {
@@ -77,7 +77,7 @@ function unescapeBasicString(value: string, multiline: boolean): string {
 
       case 'u': {
         // \uXXXX — 4 hex digits
-        if (i + 4 > len || !isHex(value[i+1]) || !isHex(value[i+2]) || !isHex(value[i+3]) || !isHex(value[i+4])) {
+        if (i + 4 > len || !isHex(value[i+1]!) || !isHex(value[i+2]!) || !isHex(value[i+3]!) || !isHex(value[i+4]!)) {
           throw new Error(`Invalid Unicode escape: \\u${value.slice(i + 1, i + 5)}`);
         }
         const cp = hexVal4(value, i + 1);
@@ -95,7 +95,7 @@ function unescapeBasicString(value: string, multiline: boolean): string {
           throw new Error(`Invalid Unicode escape: \\U${value.slice(i + 1, i + 9)}`);
         }
         for (let j = 1; j <= 8; j++) {
-          if (!isHex(value[i + j])) {
+          if (!isHex(value[i + j]!)) {
             throw new Error(`Invalid Unicode escape: \\U${value.slice(i + 1, i + 9)}`);
           }
         }
@@ -113,10 +113,10 @@ function unescapeBasicString(value: string, multiline: boolean): string {
 
       case 'x': {
         // \xHH — 2 hex digits (TOML 1.1.0)
-        if (i + 2 > len || !isHex(value[i+1]) || !isHex(value[i+2])) {
+        if (i + 2 > len || !isHex(value[i+1]!) || !isHex(value[i+2]!)) {
           throw new Error(`Invalid hex escape: \\x${value.slice(i + 1, i + 3)}`);
         }
-        const cp = (HEX_VAL[value.charCodeAt(i + 1)] << 4) | HEX_VAL[value.charCodeAt(i + 2)];
+        const cp = (HEX_VAL[value.charCodeAt(i + 1)]! << 4) | HEX_VAL[value.charCodeAt(i + 2)]!;
         parts.push(String.fromCharCode(cp));
         i += 2;
         break;

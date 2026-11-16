@@ -1,18 +1,18 @@
 import {
-  KeyValue,
-  Table,
-  InlineTable,
-  TableArray,
-  InlineArray,
+  type KeyValue,
+  type Table,
+  type InlineTable,
+  type TableArray,
+  type InlineArray,
   isInlineTable,
   isInlineArray,
   isKeyValue,
   isInlineItem,
   isTable,
   isTableArray,
-  Document,
-  Block,
-  TreeNode
+  type Document,
+  type Block,
+  type TreeNode
 } from './cst';
 import { generateTable, generateDocument, generateTableArray } from './generate';
 import { insert, remove, applyWrites, shiftNode, markStringifyRoot } from './writer';
@@ -26,7 +26,7 @@ export function arrayHadTrailingCommas(node: TreeNode): boolean {
   if (node.items.length === 0) return false;
   // Check if the last item has a trailing comma
   const lastItem = node.items[node.items.length - 1];
-  return lastItem.comma === true;
+  return lastItem!.comma === true;
 }
 
 // Helper function to detect if an InlineTable originally had trailing commas
@@ -35,7 +35,7 @@ export function tableHadTrailingCommas(node: TreeNode): boolean {
   if (node.items.length === 0) return false;
   // Check if the last item has a trailing comma
   const lastItem = node.items[node.items.length - 1];
-  return lastItem.comma === true;
+  return lastItem!.comma === true;
 }
 
 export function formatTopLevel(document: Document, format: TomlFormat): Document {
@@ -227,15 +227,15 @@ export function normalizeInlineContainerRows(
   for (let index = 1; index < container.items.length; index++) {
     const previous = container.items[index - 1];
     const next = container.items[index];
-    if (previous.loc.end.line !== next.loc.start.line) continue;
-    const targetColumn = previous.loc.end.column + (previous.comma ? commaSpace : 1);
-    shiftNode(next, { lines: 0, columns: targetColumn - next.loc.start.column });
+    if (previous!.loc.end.line !== next!.loc.start.line) continue;
+    const targetColumn = previous!.loc.end.column + (previous!.comma ? commaSpace : 1);
+    shiftNode(next!, { lines: 0, columns: targetColumn - next!.loc.start.column });
   }
   if (nestedEndChanged && !multiline && container.items.length > 0) {
     const lastItem = container.items[container.items.length - 1];
     container.loc.end = {
-      line: lastItem.loc.end.line,
-      column: lastItem.loc.end.column + (lastItem.comma ? 1 : 0) + (bracketSpacing ? 2 : 1)
+      line: lastItem!.loc.end.line,
+      column: lastItem!.loc.end.column + (lastItem!.comma ? 1 : 0) + (bracketSpacing ? 2 : 1)
     };
   }
   return nestedEndChanged;
@@ -302,8 +302,8 @@ export function normalizeGeneratedInlineContainerRows(
 export function postInlineItemRemovalAdjustment(table: Table | TableArray): void {
   if (table.items.length > 0) {
     const lastItem = table.items[table.items.length - 1];
-    table.loc.end.line = lastItem.loc.end.line;
-    table.loc.end.column = lastItem.loc.end.column;
+    table.loc.end.line = lastItem!.loc.end.line;
+    table.loc.end.column = lastItem!.loc.end.column;
   } else {
     // If no items left, table ends at the header line
     table.loc.end.line = table.key.loc.end.line;
@@ -387,7 +387,7 @@ function processTableForNestedInlines(table: Table | TableArray, additionalTable
   const toExtract: { item: KeyValue; nestedTableKey: string[] }[] = [];
   for (let i = 0; i < table.items.length; i++) {
     const item = table.items[i];
-    if (isKeyValue(item) && isInlineTable(item.value)) {
+    if (isKeyValue(item!) && isInlineTable(item.value)) {
       const nestedTableKey = [...table.key.item.value, ...item.key.value];
       const depth = calculateTableDepth(nestedTableKey);
       if (depth < (format.inlineTableStart ?? 1)) {

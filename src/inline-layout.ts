@@ -1,8 +1,8 @@
 import {
-  InlineArray,
-  InlineTable,
-  InlineItem,
-  TreeNode,
+  type InlineArray,
+  type InlineTable,
+  type InlineItem,
+  type TreeNode,
   isInlineArray,
   isInlineTable,
   isInlineItem
@@ -37,13 +37,13 @@ export function prepareInsertedNestedInlineContainer(
   const childContainer = child.item;
   const templateContainer = template.item;
   const rowIndent = templateContainer.items.length > 0
-    ? templateContainer.items[0].loc.start.column - templateContainer.loc.start.column
+    ? templateContainer.items[0]!.loc.start.column - templateContainer.loc.start.column
     : indentWidth;
   const firstRow = templateContainer.items.length > 0
-    ? templateContainer.items[0].loc.start.line - templateContainer.loc.start.line
+    ? templateContainer.items[0]!.loc.start.line - templateContainer.loc.start.line
     : 1;
   const closingRows = templateContainer.items.length > 0
-    ? templateContainer.loc.end.line - templateContainer.items[templateContainer.items.length - 1].loc.end.line
+    ? templateContainer.loc.end.line - templateContainer.items[templateContainer.items.length - 1]!.loc.end.line
     : 1;
   const startLine = childContainer.loc.start.line;
   const startColumn = childContainer.loc.start.column;
@@ -114,9 +114,9 @@ export function positionGeneratedNestedInlineTables(
       for (let index = 1; index < current.items.length; index++) {
         const previous = current.items[index - 1];
         const next = current.items[index];
-        if (previous.loc.end.line !== next.loc.start.line) continue;
-        const targetColumn = previous.loc.end.column + (previous.comma ? 2 : 1);
-        shiftNode(next, { lines: 0, columns: targetColumn - next.loc.start.column });
+        if (previous!.loc.end.line !== next!.loc.start.line) continue;
+        const targetColumn = previous!.loc.end.column + (previous!.comma ? 2 : 1);
+        shiftNode(next!, { lines: 0, columns: targetColumn - next!.loc.start.column });
       }
       const last = current.items[current.items.length - 1];
       if (last) {

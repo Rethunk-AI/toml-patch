@@ -51,8 +51,8 @@ describe('CST parsing comparison', () => {
         type: 'Document',
         items: blocks,
         loc: blocks.length > 0 ? {
-          start: blocks[0].loc.start,
-          end: blocks[blocks.length - 1].loc.end
+          start: blocks[0]!.loc.start,
+          end: blocks[blocks.length - 1]!.loc.end
         } : { start: { line: 1, column: 0 }, end: { line: 1, column: 0 } }
       };
       

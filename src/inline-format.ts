@@ -1,7 +1,7 @@
 import {
-  InlineArray,
-  InlineTable,
-  TreeNode,
+  type InlineArray,
+  type InlineTable,
+  type TreeNode,
   hasItems,
   isInlineArray,
   isInlineItem,

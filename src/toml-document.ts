@@ -2,7 +2,7 @@ import { rethrowStackOverflow } from './parse-error';
 import parseTOML, { continueParsingTOML } from './parse-toml';
 import toJS from './to-js';
 import { TomlFormat } from './toml-format';
-import { Block } from './cst';
+import type { Block } from './cst';
 import { patchCst } from './patch';
 import { attachSources } from './cst-source';
 import { detectNewline, resolveTomlFormat } from './toml-format';
@@ -153,8 +153,8 @@ export class TomlDocument {
       const newLine = newTextLines[firstDiffLineIndex];
       
       // Find the first character position where the lines differ
-      for (let i = 0; i < Math.max(existingLine.length, newLine.length); i++) {
-        if (existingLine[i] !== newLine[i]) {
+      for (let i = 0; i < Math.max(existingLine!.length, newLine!.length); i++) {
+        if (existingLine![i] !== newLine![i]) {
           firstDiffColumn = i;
           break;
         }
@@ -175,7 +175,7 @@ export class TomlDocument {
     
     // If there's a partial line match, we need to extract only the part after the continuation column
     if (remainingLines.length > 0 && continueFromColumn > 0) {
-      remainingLines[0] = remainingLines[0].substring(continueFromColumn);
+      remainingLines[0] = remainingLines[0]!.substring(continueFromColumn);
     }
     
     const remainingToml = remainingLines.join(newLineChar);

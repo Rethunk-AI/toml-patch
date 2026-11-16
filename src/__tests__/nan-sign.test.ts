@@ -20,7 +20,7 @@ const NEGATIVE_NAN = (() => {
 })();
 
 test('isNegativeNan recognises the sign bit of a NaN', () => {
-  expect(isNegativeNan(NEGATIVE_NAN)).toBe(true);
+  expect(isNegativeNan(NEGATIVE_NAN!)).toBe(true);
   expect(isNegativeNan(NaN)).toBe(false);
   expect(isNegativeNan(0)).toBe(false);
   expect(isNegativeNan(-0)).toBe(false);

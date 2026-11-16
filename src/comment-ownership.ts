@@ -1,12 +1,12 @@
 import {
-  Document,
-  Table,
-  TableArray,
-  InlineTable,
-  InlineArray,
-  KeyValue,
-  TreeNode,
-  Comment,
+  type Document,
+  type Table,
+  type TableArray,
+  type InlineTable,
+  type InlineArray,
+  type KeyValue,
+  type TreeNode,
+  type Comment,
   isComment,
   isKeyValue,
   isTable,
@@ -17,11 +17,11 @@ import {
   isInlineItem,
   isString,
   hasItems,
-  InlineItem
+  type InlineItem
 } from './cst';
 import { last } from './utils';
 import { clonePosition } from './location';
-import { remove, insert, shiftNode, applyWrites, recalcContainerEnd, perLine, getExitOffsets, addExitOffset, Root } from './writer';
+import { remove, insert, shiftNode, applyWrites, recalcContainerEnd, perLine, getExitOffsets, addExitOffset, type Root } from './writer';
 
 // See docs/Comment-Ownership.md for the full model (rules R1-R6).
 
@@ -167,7 +167,7 @@ function scanGroups(
     groups.push({
       kind: 'pinned',
       items: pendingRun,
-      startLine: pendingRun[0].loc.start.line,
+      startLine: pendingRun[0]!.loc.start.line,
       endLine: last(pendingRun)!.loc.end.line
     });
     pendingRun = [];
@@ -218,7 +218,7 @@ function scanGroups(
             // Use looksLikeKV for barrier detection — a line like
             // `# key = val # extra` still severs ownership even though
             // it isn't a "pure" dead entry.
-            const ck = looksLikeKV(pendingRun[i]) ? commentedOutFirstKey(pendingRun[i]) : undefined;
+            const ck = looksLikeKV(pendingRun[i]!) ? commentedOutFirstKey(pendingRun[i]!) : undefined;
             if (ck !== undefined && ck !== key) {
               lastBarrierIdx = i;
               break;
@@ -229,7 +229,7 @@ function scanGroups(
             groups.push({
               kind: 'pinned',
               items: pinned,
-              startLine: pinned[0].loc.start.line,
+              startLine: pinned[0]!.loc.start.line,
               endLine: last(pinned)!.loc.end.line
             });
           }
@@ -248,7 +248,7 @@ function scanGroups(
       member: item,
       key: memberKey(item),
       items: groupItems,
-      startLine: groupItems[0].loc.start.line,
+      startLine: groupItems[0]!.loc.start.line,
       endLine: item.loc.end.line
     };
     groups.push(group);
@@ -403,7 +403,7 @@ export function findHostContainer(root: Document, target: TreeNode): Document | 
 export function normalizeSectionComments(document: Document): void {
   for (let i = 0; i < document.items.length; i++) {
     const block = document.items[i];
-    if (!isTable(block) && !isTableArray(block)) continue;
+    if (!isTable(block!) && !isTableArray(block!)) continue;
 
     const nextBlock = document.items[i + 1];
     if (!nextBlock) continue;
@@ -491,8 +491,8 @@ export function removeMember(root: Root, parent: TreeNode, member: TreeNode): vo
         // A prior remove() call in this loop may already have absorbed a
         // same-line trailing comment via its own single-comment logic —
         // see the trailing-comments loop below for why that's fine.
-        if (!(parent.items as TreeNode[]).includes(item)) continue;
-        remove(root, parent, item);
+        if (!(parent.items as TreeNode[]).includes(item!)) continue;
+        remove(root, parent, item!);
       }
 
       // Trailing (R1) comments: by definition their start line
@@ -505,7 +505,7 @@ export function removeMember(root: Root, parent: TreeNode, member: TreeNode): vo
       // registering one would double-count a line height already removed.
       for (let i = memberIndex + 1; i < group.items.length; i++) {
         const item = group.items[i];
-        const idx = (parent.items as TreeNode[]).indexOf(item);
+        const idx = (parent.items as TreeNode[]).indexOf(item!);
         if (idx < 0) continue;
         (parent.items as TreeNode[]).splice(idx, 1);
       }
@@ -543,7 +543,7 @@ export function removeMember(root: Root, parent: TreeNode, member: TreeNode): vo
         }
 
         if (comments.length) {
-          member.loc.start = group.items[0].loc.start;
+          member.loc.start = group.items[0]!.loc.start;
           member.loc.end = last(group.items)!.loc.end;
         }
 
@@ -610,9 +610,9 @@ export function moveInlineElement(root: Root, parent: TreeNode, node: TreeNode, 
         const items = (parent as InlineTable | InlineArray).items as TreeNode[];
         let run = 1;
         for (let i = 1; i < items.length; i++) {
-          if (items[i].loc.start.line === items[i - 1].loc.start.line) {
-            const prevPending = getExitOffsets(root).get(items[i - 1]);
-            const selfPending = getExitOffsets(root).get(items[i]);
+          if (items[i]!.loc.start.line === items[i - 1]!.loc.start.line) {
+            const prevPending = getExitOffsets(root).get(items[i - 1]!);
+            const selfPending = getExitOffsets(root).get(items[i]!);
             if (prevPending || selfPending) continue;
             run++;
             if (run >= 3) {
@@ -647,18 +647,18 @@ export function moveInlineElement(root: Root, parent: TreeNode, node: TreeNode, 
         const items = container.items as TreeNode[];
         for (let i = 0; i < items.length; i++) {
           const item = items[i];
-          const below = item.loc.start.line > firstLine;
+          const below = item!.loc.start.line > firstLine;
           if (below) {
-            anchoredDescendants.push({ node: item, start: clonePosition(item.loc.start), end: clonePosition(item.loc.end) });
+            anchoredDescendants.push({ node: item!, start: clonePosition(item!.loc.start), end: clonePosition(item!.loc.end) });
           }
           // A multiline element's wrapper END (where its comma lands) is
           // anchored to the element's own end column, which the leaf path of
           // the rigid translation leaves alone — but the wrapper's end is
           // shifted with the first line.  Restore it too.
-          if (item.loc.end.line > firstLine && item.loc.end.line > item.loc.start.line) {
-            anchoredDescendants.push({ node: item, start: clonePosition(item.loc.start), end: clonePosition(item.loc.end), endOnly: true });
+          if (item!.loc.end.line > firstLine && item!.loc.end.line > item!.loc.start.line) {
+            anchoredDescendants.push({ node: item!, start: clonePosition(item!.loc.start), end: clonePosition(item!.loc.end), endOnly: true });
           }
-          if (isInlineItem(item)) {
+          if (isInlineItem(item!)) {
             const inner = item.item;
             if (below) {
               const kv = isKeyValue(inner) ? inner : undefined;
@@ -693,7 +693,7 @@ export function moveInlineElement(root: Root, parent: TreeNode, node: TreeNode, 
               anchoredDescendants.push({ node: inner, start: clonePosition(inner.loc.start), end: clonePosition(inner.loc.end), endOnly: true });
             }
             collectAnchored(inner, firstLine);
-          } else if (hasItems(item)) {
+          } else if (hasItems(item!)) {
             collectAnchored(item, firstLine);
           }
         }
@@ -716,7 +716,7 @@ export function moveInlineElement(root: Root, parent: TreeNode, node: TreeNode, 
             // matters for a leading, separate-line comment; a no-op for a
             // same-line trailing one, since that doesn't change the line
             // count (mirrors removeMember's identical trick).
-            node.loc.start = clonePosition(group.items[0].loc.start);
+            node.loc.start = clonePosition(group.items[0]!.loc.start);
             node.loc.end = clonePosition(last(group.items)!.loc.end);
           }
         }
@@ -997,8 +997,8 @@ export function moveInlineElement(root: Root, parent: TreeNode, node: TreeNode, 
   const itemsBefore = container.items as TreeNode[];
   const firstBefore = itemsBefore[0];
   const lastBefore = itemsBefore[itemsBefore.length - 1];
-  const originalLeadingGap = firstBefore.loc.start.column - container.loc.start.column - 1;
-  const originalTrailingGap = container.loc.end.column - 1 - lastBefore.loc.end.column;
+  const originalLeadingGap = firstBefore!.loc.start.column - container.loc.start.column - 1;
+  const originalTrailingGap = container.loc.end.column - 1 - lastBefore!.loc.end.column;
 
   remove(root, parent, node);
   insert(root, parent, node, toIndex);
@@ -1011,16 +1011,16 @@ export function moveInlineElement(root: Root, parent: TreeNode, node: TreeNode, 
   // Restore bracket gaps corrupted by the move's offsets.
   const itemsAfter = container.items as TreeNode[];
   const firstAfter = itemsAfter[0];
-  const leadingGap = firstAfter.loc.start.column - container.loc.start.column - 1;
+  const leadingGap = firstAfter!.loc.start.column - container.loc.start.column - 1;
   if (leadingGap !== originalLeadingGap) {
-    shiftNode(firstAfter, {
+    shiftNode(firstAfter!, {
       lines: 0,
       columns: originalLeadingGap - leadingGap
     });
   }
   const lastAfter = itemsAfter[itemsAfter.length - 1];
-  const trailingGap = container.loc.end.column - 1 - lastAfter.loc.end.column;
+  const trailingGap = container.loc.end.column - 1 - lastAfter!.loc.end.column;
   if (trailingGap !== originalTrailingGap) {
-    container.loc.end.column = lastAfter.loc.end.column + 1 + originalTrailingGap;
+    container.loc.end.column = lastAfter!.loc.end.column + 1 + originalTrailingGap;
   }
 }

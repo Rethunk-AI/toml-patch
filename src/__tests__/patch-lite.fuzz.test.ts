@@ -1,4 +1,4 @@
-import { collectDateLeaves, collectEditableLeaves, fuzzOneLite, fuzzRejectsLite, PatchLiteFuzzResult } from './fuzz-patch-lite';
+import { collectDateLeaves, collectEditableLeaves, fuzzOneLite, fuzzRejectsLite, type PatchLiteFuzzResult } from './fuzz-patch-lite';
 import { LocalDate, LocalTime } from '../date-format';
 
 // Seeds whose document is pinned to a fixed randomizer output. Adding a seed

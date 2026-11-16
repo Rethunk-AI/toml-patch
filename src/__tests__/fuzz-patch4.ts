@@ -58,7 +58,7 @@ function main(): void {
   const args = process.argv.slice(2);
   const param = (name: string, def: number) => {
     const index = args.indexOf(`--${name}`);
-    return index >= 0 ? parseInt(args[index + 1], 10) : def;
+    return index >= 0 ? parseInt(args[index + 1]!, 10) : def;
   };
   const count = param('count', 200);
   const startSeed = param('seed', 0);

@@ -1,16 +1,17 @@
 import { isObject, datesEqual, stableStringify, merge, sameValue, isNegativeNan } from './utils';
-import { Path } from './find-by-path';
+import type { Path } from './find-by-path';
 
-export enum ChangeType {
-  Add = 'Add',
-  Edit = 'Edit',
-  Remove = 'Remove',
-  Move = 'Move',
-  Rename = 'Rename'
-}
+export const ChangeType = {
+  Add: 'Add',
+  Edit: 'Edit',
+  Remove: 'Remove',
+  Move: 'Move',
+  Rename: 'Rename',
+} as const
+export type ChangeType = (typeof ChangeType)[keyof typeof ChangeType]
 
 export interface Add {
-  type: ChangeType.Add;
+  type: typeof ChangeType.Add;
   path: Path;
   /** Existing sibling key that the new member must be inserted before. */
   before?: string;
@@ -20,7 +21,7 @@ export function isAdd(change: Change): change is Add {
 }
 
 export interface Edit {
-  type: ChangeType.Edit;
+  type: typeof ChangeType.Edit;
   path: Path;
 }
 export function isEdit(change: Change): change is Edit {
@@ -28,7 +29,7 @@ export function isEdit(change: Change): change is Edit {
 }
 
 export interface Remove {
-  type: ChangeType.Remove;
+  type: typeof ChangeType.Remove;
   path: Path;
   /** Internal marker for array removes whose index refers to the original array. */
   coordinate?: 'source';
@@ -38,7 +39,7 @@ export function isRemove(change: Change): change is Remove {
 }
 
 export interface Move {
-  type: ChangeType.Move;
+  type: typeof ChangeType.Move;
   path: Path;
   from: number;
   to: number;
@@ -50,7 +51,7 @@ export function isMove(change: Change): change is Move {
 }
 
 export interface Rename {
-  type: ChangeType.Rename;
+  type: typeof ChangeType.Rename;
   path: Path;
   from: string;
   to: string;
@@ -146,9 +147,9 @@ function compareObjects(before: any, after: any, path: Path = [], options: DiffO
     const groups = new Map<string, string[]>();
     keys.forEach((key, index) => {
       if (exclude.has(key)) return;
-      const group = groups.get(stables[index]);
+      const group = groups.get(stables[index]!);
       if (group) group.push(key);
-      else groups.set(stables[index], [key]);
+      else groups.set(stables[index]!, [key]);
     });
     return groups;
   };
@@ -166,9 +167,9 @@ function compareObjects(before: any, after: any, path: Path = [], options: DiffO
 
     const pairs = Math.min(sources.length, targets.length);
     for (let i = 0; i < pairs; i++) {
-      renamed.set(sources[i], targets[i]);
-      renameTargets.add(targets[i]);
-      renameSourcesByTarget.set(targets[i], sources[i]);
+      renamed.set(sources[i]!, targets[i]!);
+      renameTargets.add(targets[i]!);
+      renameSourcesByTarget.set(targets[i]!, sources[i]!);
     }
   }
 
@@ -219,8 +220,8 @@ function compareObjects(before: any, after: any, path: Path = [], options: DiffO
           const addedIndex = requestedKeys.indexOf(key);
           for (let i = addedIndex + 1; i < requestedKeys.length; i++) {
             const target = requestedKeys[i];
-            const source = renameSourcesByTarget.get(target)
-              ?? (before_key_set.has(target) ? target : undefined);
+            const source = renameSourcesByTarget.get(target!)
+              ?? (before_key_set.has(target!) ? target : undefined);
             if (source !== undefined) {
               add.before = source;
               break;
@@ -259,7 +260,7 @@ function compareObjects(before: any, after: any, path: Path = [], options: DiffO
     });
     let directIndex = 0;
     changes = changes.map(change =>
-      directChanges.includes(change) ? orderedDirectChanges[directIndex++] : change
+      directChanges.includes(change) ? orderedDirectChanges[directIndex++]! : change
     );
   }
 
@@ -387,7 +388,7 @@ function compareArrays(before: any[], after: any[], path: Path = [], options: Di
     }
 
     // Check if item has been moved -> shift into place
-    const from = overflow ? -1 : before_stable.indexOf(value, index + 1);
+    const from = overflow ? -1 : before_stable.indexOf(value!, index + 1);
     if (from > -1) {
       // Is `before_stable[index]` (the mismatched element at this slot) a
       // surplus duplicate — more copies surviving in `before`'s unmatched
@@ -413,7 +414,7 @@ function compareArrays(before: any[], after: any[], path: Path = [], options: Di
       // from a multiline inline array dropped a line of a multiline string;
       // fuzz seed 35943: removing one of several duplicate scalars above a
       // nested multiline array chain-moved the array and corrupted its tail).
-      if (layoutSensitiveArray && (after_stable.indexOf(before_stable[index]) === -1 || surplusDuplicate)) {
+      if (layoutSensitiveArray && (after_stable.indexOf(before_stable[index]!) === -1 || surplusDuplicate)) {
         changes.push(removeChange(index + removedBefore));
         before_stable.splice(index, 1);
         before_sim.splice(index, 1);
@@ -456,7 +457,7 @@ function compareArrays(before: any[], after: any[], path: Path = [], options: Di
           path: path.concat(index)
         });
         sameArrayAddEmitted = true;
-        before_stable.splice(index, 0, value);
+        before_stable.splice(index, 0, value!);
         before_sim.splice(index, 0, after[index]);
         // The fresh copy is spliced in BEFORE the original (at `from`), so it
         // shifts every later sim element — including the original we just
@@ -513,7 +514,7 @@ function compareArrays(before: any[], after: any[], path: Path = [], options: Di
     const removed = !overflow && surplus;
     if (removed) {
       merge(changes, diff(before_sim[index], after[index], path.concat(index), options));
-      before_stable[index] = value;
+      before_stable[index] = value!;
       before_sim[index] = after[index];
 
       continue;
@@ -525,7 +526,7 @@ function compareArrays(before: any[], after: any[], path: Path = [], options: Di
       path: path.concat(index)
     });
     sameArrayAddEmitted = true;
-    before_stable.splice(index, 0, value);
+    before_stable.splice(index, 0, value!);
     before_sim.splice(index, 0, after[index]);
     // Same source-index bookkeeping as the refused-move Add above: splicing a
     // new element in front of the surviving suffix shifts later sim indices

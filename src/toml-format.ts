@@ -129,12 +129,12 @@ function checkBracketSpacingInLocation(loc: any, tomlString: string): boolean | 
   
   if (arrayMatch) {
     // Check if there's a space after the opening bracket
-    return arrayMatch[1].length > 0;
+    return arrayMatch[1]!.length > 0;
   }
   
   if (tableMatch) {
     // Check if there's a space after the opening brace
-    return tableMatch[1].length > 0;
+    return tableMatch[1]!.length > 0;
   }
 
   return null;

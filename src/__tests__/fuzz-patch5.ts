@@ -301,7 +301,7 @@ function mutateAot(
   const newValue = changedScalar(entryValue, rng);
   let parent = entry;
   for (const segment of valuePath.slice(0, -1)) parent = parent[segment];
-  parent[valuePath[valuePath.length - 1]] = newValue;
+  parent[valuePath[valuePath.length - 1]!] = newValue;
   return {
     plan: { kind: 'change-value', path: [...selected.path, entryIndex, ...valuePath], newValue },
     description: 'edit existing AOT value'
@@ -333,7 +333,7 @@ export const aotRemovalMutationStrategy: MutationStrategy = ({ updated, context 
 
 export const aotMutationStrategy: MutationStrategy = ({ updated, context }) => {
   const modes: AotMutationMode[] = ['remove-entry', 'add-object', 'add-mixed-value', 'edit-scalar'];
-  return runAotMutationStrategy(updated, context, seed => modes[seed % modes.length]);
+  return runAotMutationStrategy(updated, context, seed => modes[seed % modes.length]!);
 };
 
 export function fuzzOne5(seed: number, mutationCount: number): PatchFuzzResult {

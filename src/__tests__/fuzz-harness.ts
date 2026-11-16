@@ -124,8 +124,8 @@ function main() {
   const args = process.argv.slice(2);
   const countIndex = args.indexOf('--count');
   const seedIndex = args.indexOf('--seed');
-  const count = countIndex >= 0 ? parseInt(args[countIndex + 1], 10) : 1000;
-  const startSeed = seedIndex >= 0 ? parseInt(args[seedIndex + 1], 10) : 0;
+  const count = countIndex >= 0 ? parseInt(args[countIndex + 1]!, 10) : 1000;
+  const startSeed = seedIndex >= 0 ? parseInt(args[seedIndex + 1]!, 10) : 0;
 
   console.log(`Fuzzing ${count} seeds starting from ${startSeed}...`);
 

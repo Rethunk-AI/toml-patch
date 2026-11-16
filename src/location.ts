@@ -81,7 +81,7 @@ export function findPosition(input: string | number[], index: number): Position 
   let hi = lines.length - 1;
   while (lo < hi) {
     const mid = (lo + hi) >>> 1;
-    if (lines[mid] < index) {
+    if (lines[mid]! < index) {
       lo = mid + 1;
     } else {
       hi = mid;
@@ -89,12 +89,12 @@ export function findPosition(input: string | number[], index: number): Position 
   }
 
   // If index is past all recorded line endings (no sentinel), advance to next line
-  if (lines[lo] < index) {
+  if (lines[lo]! < index) {
     lo++;
   }
 
   const line = lo + 1;
-  const column = index - (lines[line - 2] + 1 || 0);
+  const column = index - (lines[line - 2]! + 1 || 0);
 
   return { line, column };
 }
@@ -109,7 +109,7 @@ export function findPosition(input: string | number[], index: number): Position 
 export function getLine(input: string, position: Position): string {
   const lines = getCachedLines(input);
 
-  const start = lines[position.line - 2] !== undefined ? lines[position.line - 2] + 1 : 0;
+  const start = lines[position.line - 2] !== undefined ? lines[position.line - 2]! + 1 : 0;
   const end = lines[position.line - 1] || input.length;
 
   return input.substring(start, end);

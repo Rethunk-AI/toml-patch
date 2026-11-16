@@ -11,13 +11,13 @@
  * aligned comment blocks.
  */
 import {
-  Comment,
-  Document,
-  KeyValue,
-  Table,
-  TableArray,
-  TreeNode,
-  Value,
+  type Comment,
+  type Document,
+  type KeyValue,
+  type Table,
+  type TableArray,
+  type TreeNode,
+  type Value,
   hasItems,
   isComment,
   isInlineArray,
@@ -45,18 +45,19 @@ const original_comment_column = new WeakMap<Comment, number>();
  */
 function getAttachedInlineComment(items: TreeNode[], index: number): Comment | undefined {
   const current = items[index];
-  const commentLine = current.loc.end.line;
+  const commentLine = current!.loc.end.line;
 
   for (let i = index + 1; i < items.length; i++) {
     const candidate = items[i];
-    if (isComment(candidate) && candidate.loc.start.line === commentLine) {
+    if (isComment(candidate!) && candidate.loc.start.line === commentLine) {
       return candidate;
     }
 
-    if (!isComment(candidate) && candidate.loc.start.line > commentLine) {
+    if (!isComment(candidate!) && candidate!.loc.start.line > commentLine) {
       return;
     }
   }
+  return undefined;
 }
 
 /**
@@ -69,10 +70,11 @@ function getAttachedInlineComment(items: TreeNode[], index: number): Comment | u
  */
 function getNeighborRowIndex(items: TreeNode[], index: number, direction: -1 | 1): number | undefined {
   for (let i = index + direction; i >= 0 && i < items.length; i += direction) {
-    if (!isComment(items[i])) {
+    if (!isComment(items[i]!)) {
       return i;
     }
   }
+  return undefined;
 }
 
 /**
@@ -439,7 +441,7 @@ export function normalizeInlineCommentAlignmentInString(
   for (const group of groups) {
     if (group.length < 2) continue;
 
-    let targetColumn = original_comment_column.get(group[0]) ?? group[0].loc.start.column;
+    let targetColumn = original_comment_column.get(group[0]!) ?? group[0]!.loc.start.column;
     const counts = new Map<number, number>();
     for (const comment of group) {
       const baselineColumn = original_comment_column.get(comment) ?? comment.loc.start.column;

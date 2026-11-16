@@ -19,7 +19,7 @@ describe('LocalTime midnight boundary handling', () => {
       // The underlying date is now 1970-01-02T01:00:00
       // but toISOString should return just the time portion
       const result = new LocalTime(
-        newTime.toISOString().split('T')[1].split('Z')[0],
+        newTime.toISOString().split('T')[1]!.split('Z')[0]!,
         '23:00:00'
       );
       
@@ -36,7 +36,7 @@ describe('LocalTime midnight boundary handling', () => {
       // The underlying date is now 1969-12-31T23:00:00
       // but toISOString should return just the time portion
       const result = new LocalTime(
-        newTime.toISOString().split('T')[1].split('Z')[0],
+        newTime.toISOString().split('T')[1]!.split('Z')[0]!,
         '01:00:00'
       );
       
@@ -51,7 +51,7 @@ describe('LocalTime midnight boundary handling', () => {
       const newTime = new Date(time.getTime() + 30 * 60 * 1000);
       
       const result = new LocalTime(
-        newTime.toISOString().split('T')[1].split('Z')[0],
+        newTime.toISOString().split('T')[1]!.split('Z')[0]!,
         '23:45:00'
       );
       
@@ -65,7 +65,7 @@ describe('LocalTime midnight boundary handling', () => {
       const newTime = new Date(time.getTime() + 2);
       
       const result = new LocalTime(
-        newTime.toISOString().split('T')[1].split('Z')[0],
+        newTime.toISOString().split('T')[1]!.split('Z')[0]!,
         '23:59:59.999'
       );
       
@@ -115,7 +115,7 @@ describe('LocalTime midnight boundary handling', () => {
       const newTime = new Date(time.getTime() + 25 * 60 * 60 * 1000);
       
       const result = new LocalTime(
-        newTime.toISOString().split('T')[1].split('Z')[0],
+        newTime.toISOString().split('T')[1]!.split('Z')[0]!,
         '10:00:00'
       );
       
@@ -129,7 +129,7 @@ describe('LocalTime midnight boundary handling', () => {
       const newTime = new Date(time.getTime() - 25 * 60 * 60 * 1000);
       
       const result = new LocalTime(
-        newTime.toISOString().split('T')[1].split('Z')[0],
+        newTime.toISOString().split('T')[1]!.split('Z')[0]!,
         '14:00:00'
       );
       

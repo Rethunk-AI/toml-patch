@@ -1,6 +1,6 @@
 import { isFloat as isFloatNode } from './cst';
 import { DateFormatHelper, LocalDate, LocalTime, LocalDateTime, OffsetDateTime } from './date-format';
-import { PatchLiteError, formatPath, Path } from './diff-lite';
+import { PatchLiteError, formatPath, type Path } from './diff-lite';
 import { canUseLiteralString, canUseMultilineLiteral } from './literal-string';
 import { isNegativeNan, isTemporal, temporalToTomlString } from './utils';
 
@@ -55,7 +55,7 @@ function encodeTemporal(value: any, existingValue: any): string {
     if (existingRaw.includes(' ') && raw.includes('T')) raw = raw.replace('T', ' ');
     // Keep a spelled-out zero offset when the source wrote it that way.
     if (/(?:\+00:00|-00:00)/.test(existingRaw) && raw.endsWith('Z')) {
-      raw = raw.replace(/Z$/, existingRaw.match(/([+-]00:00)/)![1]);
+      raw = raw.replace(/Z$/, existingRaw.match(/([+-]00:00)/)![1]!);
     }
   }
 
@@ -152,13 +152,13 @@ function encodeExponentFloat(value: number, existingRaw: string): string {
   const minDecimals = valueIsIntegral ? (isRound ? fraction.length : 0) : 0;
 
   const [mantissa, exponent] = value.toExponential().split(/[eE]/);
-  const mantissaDecimals = mantissa.includes('.') ? mantissa.length - mantissa.indexOf('.') - 1 : 0;
+  const mantissaDecimals = mantissa!.includes('.') ? mantissa!.length - mantissa!.indexOf('.') - 1 : 0;
   const decimals = Math.max(minDecimals, mantissaDecimals);
   const renderedMantissa = decimals > 0
     ? Number(mantissa).toFixed(decimals)
     : String(Number(mantissa));
   const uppercaseExponent = existingRaw.includes('E');
-  return `${renderedMantissa}${uppercaseExponent ? 'E' : 'e'}${exponent.replace(/^\+/, '')}`;
+  return `${renderedMantissa}${uppercaseExponent ? 'E' : 'e'}${exponent!.replace(/^\+/, '')}`;
 }
 
 function encodeNonFinite(value: number): string {

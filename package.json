@@ -44,7 +44,7 @@
     }
   },
   "scripts": {
-    "dev": "pnpm run typecheck && pnpm run build && npm-run-all2 --parallel test:all specs",
+    "dev": "turbo run typecheck build && npm-run-all2 --parallel test:all specs",
     "test": "vitest run",
     "test:output": "node scripts/test-debug.mjs",
     "test:js": "vitest run --config vitest.js.config.ts",
@@ -53,7 +53,7 @@
     "test:playwright": "playwright test",
     "playwright:install": "playwright install --with-deps chromium",
     "test:all": "pnpm run test && pnpm run test:js && pnpm run test:playwright",
-    "typecheck": "tsc",
+    "typecheck": "tsc --noEmit",
     "specs": "vitest run --config vitest.specs.config.ts",
     "bench": "node benchmark/fixture-benchmark.mjs",
     "bench:all": "node benchmark/fixture-benchmark.mjs --all",
@@ -102,6 +102,7 @@
     "smol-toml": "^1.9.0",
     "tsdown": "^0.23.0",
     "tslib": "^2.0.0",
+    "turbo": "^2.11.11",
     "typescript": "7.0.2",
     "vitest": "^5.1.0"
   },

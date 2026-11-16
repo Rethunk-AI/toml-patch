@@ -5,24 +5,24 @@ import {
 } from './cst-source';
 import {
   NodeType,
-  CST,
-  TreeNode,
-  Document,
-  Table,
-  TableKey,
-  TableArray,
-  TableArrayKey,
-  KeyValue,
-  Key,
-  String as StringNode,
-  Integer,
-  Float,
-  Boolean as BooleanNode,
-  DateTime,
-  InlineArray,
-  InlineTable,
-  InlineItem,
-  Comment,
+  type CST,
+  type TreeNode,
+  type Document,
+  type Table,
+  type TableKey,
+  type TableArray,
+  type TableArrayKey,
+  type KeyValue,
+  type Key,
+  type String as StringNode,
+  type Integer,
+  type Float,
+  type Boolean as BooleanNode,
+  type DateTime,
+  type InlineArray,
+  type InlineTable,
+  type InlineItem,
+  type Comment,
   hasItems,
   hasItem,
   isKeyValue,
@@ -32,7 +32,7 @@ import {
   isInlineTable,
   isInlineArray
 } from './cst';
-import { Location } from './location';
+import type { Location } from './location';
 import { SPACE } from './tokenizer';
 import { TomlFormat } from './toml-format';
 import { isIterable } from './utils';
@@ -146,13 +146,13 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
     switch (node.type) {
       case NodeType.Document:
         for (let i = 0; i < (node as Document).items.length; i++)
-          emitNode((node as Document).items[i]);
+          emitNode((node as Document).items[i]!);
         break;
 
       case NodeType.Table: {
         const tbl = node as Table;
         emitNode(tbl.key);
-        for (let i = 0; i < tbl.items.length; i++) emitNode(tbl.items[i]);
+        for (let i = 0; i < tbl.items.length; i++) emitNode(tbl.items[i]!);
         break;
       }
       case NodeType.TableKey: {
@@ -165,7 +165,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
       case NodeType.TableArray: {
         const ta = node as TableArray;
         emitNode(ta.key);
-        for (let i = 0; i < ta.items.length; i++) emitNode(ta.items[i]);
+        for (let i = 0; i < ta.items.length; i++) emitNode(ta.items[i]!);
         break;
       }
       case NodeType.TableArrayKey: {
@@ -210,7 +210,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
         const closing = closingPosition(ia);
         writeSingle(lines, start.line, start.column, '[');
         writeSingle(lines, closing.line, closing.column, ']');
-        for (let i = 0; i < ia.items.length; i++) emitNode(ia.items[i]);
+        for (let i = 0; i < ia.items.length; i++) emitNode(ia.items[i]!);
         break;
       }
       case NodeType.InlineTable: {
@@ -219,7 +219,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
         const closing = closingPosition(it);
         writeSingle(lines, start.line, start.column, '{');
         writeSingle(lines, closing.line, closing.column, '}');
-        for (let i = 0; i < it.items.length; i++) emitNode(it.items[i]);
+        for (let i = 0; i < it.items.length; i++) emitNode(it.items[i]!);
         break;
       }
       case NodeType.InlineItem: {
@@ -290,13 +290,13 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
       if (contentLines.has(i + 1)) continue;
       const line = lines[i];
       // Find the leading whitespace
-      const match = line.match(/^( +)/);
+      const match = line!.match(/^( +)/);
       if (match) {
         const leadingSpaces = match[1];
         // Replace entire leading space sequence with equivalent tabs
         // Each space becomes a tab (preserving the visual width)
-        const leadingTabs = '\t'.repeat(leadingSpaces.length);
-        lines[i] = leadingTabs + line.substring(leadingSpaces.length);
+        const leadingTabs = '\t'.repeat(leadingSpaces!.length);
+        lines[i] = leadingTabs + line!.substring(leadingSpaces!.length);
       }
     }
   }
@@ -314,7 +314,7 @@ export default function toTOML(cst: CST, format: TomlFormat): string {
       const parts = (node as StringNode).raw.split(BY_NEW_LINE);
       let lineIndex = node.loc.start.line - 1;
       for (let i = 1; i < parts.length; i += 2) {
-        stringBreaks.set(lineIndex, parts[i]);
+        stringBreaks.set(lineIndex, parts[i]!);
         lineIndex += 1;
       }
     }
@@ -354,9 +354,9 @@ function createCopiedRanges() {
       if (!entry) bySource.set(source, entry = { starts: [], maxEnds: [], ranges: [], ordered: true });
       entry.ranges.push([start, end]);
       const last = entry.starts.length - 1;
-      if (entry.ordered && (last < 0 || start >= entry.starts[last])) {
+      if (entry.ordered && (last < 0 || start >= entry.starts[last]!)) {
         entry.starts.push(start);
-        entry.maxEnds.push(last < 0 ? end : Math.max(entry.maxEnds[last], end));
+        entry.maxEnds.push(last < 0 ? end : Math.max(entry.maxEnds[last]!, end));
       } else {
         entry.ordered = false;
       }
@@ -370,14 +370,14 @@ function createCopiedRanges() {
       let found = -1;
       while (lo <= hi) {
         const mid = (lo + hi) >> 1;
-        if (entry.starts[mid] <= start) {
+        if (entry.starts[mid]! <= start) {
           found = mid;
           lo = mid + 1;
         } else {
           hi = mid - 1;
         }
       }
-      return found >= 0 && entry.maxEnds[found] >= end;
+      return found >= 0 && entry.maxEnds[found]! >= end;
     }
   };
 }
@@ -459,7 +459,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
       column += text.length;
     } else {
       line += parts.length - 1;
-      column = parts[parts.length - 1].length;
+      column = parts[parts.length - 1]!.length;
     }
   };
 
@@ -475,7 +475,7 @@ export function toTOMLCursor(cst: CST, format: TomlFormat): string {
     const gap = source.slice(lastCopy.end, start);
     if (!/^[ \t\r\n]*$/.test(gap)) return undefined;
     const rows = gap.split(/\r\n|\n/);
-    const tail = rows[rows.length - 1].length;
+    const tail = rows[rows.length - 1]!.length;
     return rows.length - 1 === targetLine - line && (rows.length > 1 ? tail === targetColumn : tail === targetColumn - column)
       ? gap
       : undefined;
@@ -1018,15 +1018,15 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
         stack.push([1, ']']);
         if (items.length > 0) {
           const last = items[items.length - 1];
-          stack.push([2, last.loc.end.line, last.loc.end.column + (last.comma ? 1 : 0), array.loc.end.line, array.loc.end.column - 1, false]);
+          stack.push([2, last!.loc.end.line, last!.loc.end.column + (last!.comma ? 1 : 0), array.loc.end.line, array.loc.end.column - 1, false]);
         }
         for (let i = items.length - 1; i >= 0; i--) {
           const current = items[i];
           const previous = i > 0 ? items[i - 1] : undefined;
           stack.push([0, current, false]);
           stack.push(previous
-            ? [2, previous.loc.end.line, previous.loc.end.column + (previous.comma ? 1 : 0), current.loc.start.line, current.loc.start.column, false]
-            : [2, array.loc.start.line, array.loc.start.column + 1, current.loc.start.line, current.loc.start.column, false]);
+            ? [2, previous.loc.end.line, previous.loc.end.column + (previous.comma ? 1 : 0), current!.loc.start.line, current!.loc.start.column, false]
+            : [2, array.loc.start.line, array.loc.start.column + 1, current!.loc.start.line, current!.loc.start.column, false]);
         }
         stack.push([1, '[']);
         if (place) stack.push([3, array.loc.start.line, array.loc.start.column]);
@@ -1039,16 +1039,16 @@ export function toTOMLSequential(cst: CST, format: TomlFormat): string {
         stack.push([1, '}']);
         if (items.length > 0) {
           const last = items[items.length - 1];
-          if (generatedMultilineTable && last.comma) stack.push([1, SPACE]);
-          stack.push([2, last.loc.end.line, last.loc.end.column + (last.comma ? 1 : 0), table.loc.end.line, table.loc.end.column - 1, generatedMultilineTable]);
+          if (generatedMultilineTable && last!.comma) stack.push([1, SPACE]);
+          stack.push([2, last!.loc.end.line, last!.loc.end.column + (last!.comma ? 1 : 0), table.loc.end.line, table.loc.end.column - 1, generatedMultilineTable]);
         }
         for (let i = items.length - 1; i >= 0; i--) {
           const current = items[i];
           const previous = i > 0 ? items[i - 1] : undefined;
           stack.push([0, current, false]);
           stack.push(previous
-            ? [2, previous.loc.end.line, previous.loc.end.column + (previous.comma ? 1 : 0), current.loc.start.line, current.loc.start.column, generatedMultilineTable]
-            : [2, table.loc.start.line, table.loc.start.column + 1, current.loc.start.line, current.loc.start.column, generatedMultilineTable]);
+            ? [2, previous.loc.end.line, previous.loc.end.column + (previous.comma ? 1 : 0), current!.loc.start.line, current!.loc.start.column, generatedMultilineTable]
+            : [2, table.loc.start.line, table.loc.start.column + 1, current!.loc.start.line, current!.loc.start.column, generatedMultilineTable]);
         }
         stack.push([1, '{']);
         if (place) stack.push([3, table.loc.start.line, table.loc.start.column]);
@@ -1215,5 +1215,5 @@ function getLine(lines: string[], index: number): string {
     }
   }
 
-  return lines[index - 1];
+  return lines[index - 1]!;
 }

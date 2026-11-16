@@ -97,7 +97,7 @@ export function rebuildLineContinuation(
 
   // Determine closing format: does the closing delimiter sit on its own line?
   const lastLine = rawLines[rawLines.length - 1];
-  const hasClosingIndent = rawLines.length > 1 && /^[\t ]*$/.test(lastLine);
+  const hasClosingIndent = rawLines.length > 1 && /^[\t ]*$/.test(lastLine!);
   const closingIndent = hasClosingIndent ? lastLine : '';
   const bodyLines = hasClosingIndent ? rawLines.slice(0, -1) : rawLines;
 
@@ -122,8 +122,8 @@ export function rebuildLineContinuation(
     const indent = stripped.match(/^[\t ]*/)?.[0] ?? '';
     const afterIndent = stripped.slice(indent.length);
     const trailingMatch = afterIndent.match(/([\t ]+)$/);
-    const trailingWs = trailingMatch ? trailingMatch[1] : '';
-    const content = afterIndent.slice(0, afterIndent.length - trailingWs.length);
+    const trailingWs = trailingMatch?.[1] ?? '';
+    const content = afterIndent.slice(0, afterIndent.length - trailingWs!.length);
 
     return { indent, content, trailingWs, hasBackslash, isBlank: false };
   });
@@ -187,7 +187,7 @@ export function rebuildLineContinuation(
     let ti = 0;
     while (ti < tokens.length) {
       let line = tokens[ti++]; // always take at least one word token
-      while (ti < tokens.length && tokens[ti][0] === ' ') {
+      while (ti < tokens.length && tokens[ti]![0] === ' ') {
         const spaceTok = tokens[ti];
         const nextWord = tokens[ti + 1];
         if (!nextWord) {
@@ -195,18 +195,18 @@ export function rebuildLineContinuation(
           ti++;
           break;
         }
-        if (line.length + spaceTok.length + nextWord.length <= maxLength) {
+        if (line!.length + spaceTok!.length + nextWord.length <= maxLength) {
           line += spaceTok + nextWord;
           ti += 2;
         } else {
           // Next word doesn't fit; append the space run so it becomes trailing
           // whitespace before the line-continuation backslash (preserved by TOML).
-          line += spaceTok;
+          line! += spaceTok!;
           ti++;
           break;
         }
       }
-      lines.push(line);
+      lines.push(line!);
     }
     if (lines.length === 0) lines.push('');
     return lines;
@@ -241,21 +241,21 @@ export function rebuildLineContinuation(
 
     // Guard: first logical line's content must not start with a space after stripping
     // the structural first-line indent.
-    const firstLineInput = logicalLines[0].slice(newFirstIndent.length);
+    const firstLineInput = logicalLines[0]!.slice(newFirstIndent.length);
     if (firstLineInput.length > 0 && firstLineInput[0] === ' ') return null;
 
     // Guard: final logical line's trailing space count must match tailProto.
     const lastLineInput = logicalLines[logicalLines.length - 1];
-    if (lastLineInput.length > 0) {
-      const trailingSpaces = lastLineInput.length - lastLineInput.trimEnd().length;
+    if (lastLineInput!.length > 0) {
+      const trailingSpaces = lastLineInput!.length - lastLineInput!.trimEnd().length;
       if (trailingSpaces !== tailProto.trailingWs.length) return null;
     }
 
     for (let li = 0; li < logicalLines.length; li++) {
       const rawLine = logicalLines[li];
-      const adjusted = li === 0 ? rawLine.slice(newFirstIndent.length) : rawLine;
-      const logicalLineIndent = adjusted.match(/^[\t ]*/)?.[0] ?? '';
-      const logicalLineContent = adjusted.slice(logicalLineIndent.length);
+      const adjusted = li === 0 ? rawLine!.slice(newFirstIndent.length) : rawLine;
+      const logicalLineIndent = adjusted!.match(/^[\t ]*/)?.[0] ?? '';
+      const logicalLineContent = adjusted!.slice(logicalLineIndent.length);
       const packedLines = packContent(logicalLineContent);
       const startIdx = newContentLines.length;
       logicalLineStartIndices.add(startIdx);
@@ -300,8 +300,8 @@ export function rebuildLineContinuation(
       // Only consider segments up to (but not including) the tail segment.
       for (let k = 0; k < contentSegments.length - 1; k++) {
         const seg = contentSegments[k];
-        if (!seg.hasBackslash) break; // non-continuation inner segment — stop
-        const contrib = seg.content + seg.trailingWs;
+        if (!seg!.hasBackslash) break; // non-continuation inner segment — stop
+        const contrib = seg!.content + seg!.trailingWs;
         if (packInput.slice(consumedChars, consumedChars + contrib.length) === contrib) {
           preservedCount++;
           consumedChars += contrib.length;
@@ -318,7 +318,7 @@ export function rebuildLineContinuation(
       let suffixChars = 0;
       for (let k = contentSegments.length - 1; k >= preservedCount; k--) {
         const seg = contentSegments[k];
-        const contrib = seg.content + seg.trailingWs;
+        const contrib = seg!.content + seg!.trailingWs;
         if (contrib.length === 0) break; // structural segment — stop
         const start = packInput.length - suffixChars - contrib.length;
         if (start >= consumedChars && packInput.slice(start, start + contrib.length) === contrib) {
@@ -340,9 +340,9 @@ export function rebuildLineContinuation(
           // 1. Emit preserved prefix lines verbatim (all have continuation backslash).
           for (let i = 0; i < preservedCount; i++) {
             const seg = contentSegments[i];
-            rebuiltLines.push(`${seg.indent}${seg.content}${seg.trailingWs}\\`);
-            if (i < preservedCount - 1 && i < blankGroups.length && blankGroups[i].length > 0) {
-              for (const bl of blankGroups[i]) rebuiltLines.push(bl);
+            rebuiltLines.push(`${seg!.indent}${seg!.content}${seg!.trailingWs}\\`);
+            if (i < preservedCount - 1 && i < blankGroups.length && blankGroups[i]!.length > 0) {
+              for (const bl of blankGroups[i]!) rebuiltLines.push(bl);
             }
           }
 
@@ -355,8 +355,8 @@ export function rebuildLineContinuation(
             // Blank group bridging last prefix segment and first middle line.
             if (preservedCount > 0 && !hasEncodedNewlines) {
               const bridgeIdx = preservedCount - 1;
-              if (bridgeIdx < blankGroups.length && blankGroups[bridgeIdx].length > 0) {
-                for (const bl of blankGroups[bridgeIdx]) rebuiltLines.push(bl);
+              if (bridgeIdx < blankGroups.length && blankGroups[bridgeIdx]!.length > 0) {
+                for (const bl of blankGroups[bridgeIdx]!) rebuiltLines.push(bl);
               }
             }
             for (let j = 0; j < midLines.length; j++) {
@@ -366,12 +366,12 @@ export function rebuildLineContinuation(
               const indent = origSeg
                 ? (isLeadingNewlineOpening && origIdx === 0 ? newFirstIndent : origSeg.indent)
                 : contProto.indent;
-              const trailing = newContent.length > 0 && /\s$/.test(newContent) ? '' : (middleInput.endsWith(' ') ? ' ' : '');
+              const trailing = newContent!.length > 0 && /\s$/.test(newContent!) ? '' : (middleInput.endsWith(' ') ? ' ' : '');
               rebuiltLines.push(`${indent}${newContent}${trailing}\\`);
               if (j < midLines.length - 1 && !hasEncodedNewlines) {
                 const bgIdx = preservedCount + j;
-                if (bgIdx < blankGroups.length && blankGroups[bgIdx].length > 0) {
-                  for (const bl of blankGroups[bgIdx]) rebuiltLines.push(bl);
+                if (bgIdx < blankGroups.length && blankGroups[bgIdx]!.length > 0) {
+                  for (const bl of blankGroups[bgIdx]!) rebuiltLines.push(bl);
                 }
               }
             }
@@ -379,14 +379,14 @@ export function rebuildLineContinuation(
             const midToSuffixBgIdx = contentSegments.length - suffixCount - 1;
             if (!hasEncodedNewlines &&
                 midToSuffixBgIdx >= 0 && midToSuffixBgIdx < blankGroups.length &&
-                blankGroups[midToSuffixBgIdx].length > 0) {
-              for (const bl of blankGroups[midToSuffixBgIdx]) rebuiltLines.push(bl);
+                blankGroups[midToSuffixBgIdx]!.length > 0) {
+              for (const bl of blankGroups[midToSuffixBgIdx]!) rebuiltLines.push(bl);
             }
           } else if (preservedCount > 0) {
             // Empty middle: blank group bridging last prefix and first suffix.
             const bridgeIdx = preservedCount - 1;
-            if (bridgeIdx < blankGroups.length && blankGroups[bridgeIdx].length > 0) {
-              for (const bl of blankGroups[bridgeIdx]) rebuiltLines.push(bl);
+            if (bridgeIdx < blankGroups.length && blankGroups[bridgeIdx]!.length > 0) {
+              for (const bl of blankGroups[bridgeIdx]!) rebuiltLines.push(bl);
             }
           }
 
@@ -399,13 +399,13 @@ export function rebuildLineContinuation(
             // bridge, which was handled above).
             if (i > suffixStart) {
               const bgIdx = i - 1;
-              if (bgIdx < blankGroups.length && blankGroups[bgIdx].length > 0) {
-                for (const bl of blankGroups[bgIdx]) rebuiltLines.push(bl);
+              if (bgIdx < blankGroups.length && blankGroups[bgIdx]!.length > 0) {
+                for (const bl of blankGroups[bgIdx]!) rebuiltLines.push(bl);
               }
             }
             rebuiltLines.push(isTail
-              ? `${seg.indent}${seg.content}${seg.trailingWs}${seg.hasBackslash && seg.content !== '' ? '\\' : ''}`
-              : `${seg.indent}${seg.content}${seg.trailingWs}\\`);
+              ? `${seg!.indent}${seg!.content}${seg!.trailingWs}${seg!.hasBackslash && seg!.content !== '' ? '\\' : ''}`
+              : `${seg!.indent}${seg!.content}${seg!.trailingWs}\\`);
           }
 
           const useClosingIndentEarly = hasClosingIndent && !(tailProto.hasBackslash && tailProto.content === '');
@@ -428,10 +428,10 @@ export function rebuildLineContinuation(
         // Emit preserved original continuation lines verbatim.
         for (let i = 0; i < preservedCount; i++) {
           const seg = contentSegments[i];
-          rebuiltLines.push(`${seg.indent}${seg.content}${seg.trailingWs}\\`);
+          rebuiltLines.push(`${seg!.indent}${seg!.content}${seg!.trailingWs}\\`);
           // Emit blank groups that fall between preserved segments.
-          if (i < preservedCount - 1 && i < blankGroups.length && blankGroups[i].length > 0) {
-            for (const bl of blankGroups[i]) rebuiltLines.push(bl);
+          if (i < preservedCount - 1 && i < blankGroups.length && blankGroups[i]!.length > 0) {
+            for (const bl of blankGroups[i]!) rebuiltLines.push(bl);
           }
         }
 
@@ -439,9 +439,9 @@ export function rebuildLineContinuation(
           // The new content ends exactly at the last preserved segment boundary.
           // Convert the last preserved line from continuation to tail.
           const lastSeg = contentSegments[preservedCount - 1];
-          const backslash = tailProto.hasBackslash && lastSeg.content !== '' ? '\\' : '';
+          const backslash = tailProto.hasBackslash && lastSeg!.content !== '' ? '\\' : '';
           rebuiltLines[rebuiltLines.length - 1] =
-            `${lastSeg.indent}${lastSeg.content}${tailProto.trailingWs}${backslash}`;
+            `${lastSeg!.indent}${lastSeg!.content}${tailProto.trailingWs}${backslash}`;
         } else {
           // Pack only the remaining (changed) portion of the content.
           const newPackedLines = packContent(remainingInput);
@@ -449,8 +449,8 @@ export function rebuildLineContinuation(
           const hasEncodedNewlines = /(?<!\\)\\n/.test(joinedNew);
           // Emit blank group bridging the last preserved segment and the first new line.
           const bridgeIdx = preservedCount - 1;
-          if (!hasEncodedNewlines && bridgeIdx < blankGroups.length && blankGroups[bridgeIdx].length > 0) {
-            for (const bl of blankGroups[bridgeIdx]) rebuiltLines.push(bl);
+          if (!hasEncodedNewlines && bridgeIdx < blankGroups.length && blankGroups[bridgeIdx]!.length > 0) {
+            for (const bl of blankGroups[bridgeIdx]!) rebuiltLines.push(bl);
           }
           for (let j = 0; j < newPackedLines.length; j++) {
             const isLastNew = j === newPackedLines.length - 1;
@@ -466,15 +466,15 @@ export function rebuildLineContinuation(
               trailing = tailProto.trailingWs;
               backslash = tailProto.hasBackslash && tailProto.content !== '' ? '\\' : '';
             } else {
-              trailing = newContent.length > 0 && /\s$/.test(newContent) ? '' : ' ';
+              trailing = newContent!.length > 0 && /\s$/.test(newContent!) ? '' : ' ';
               backslash = '\\';
             }
             rebuiltLines.push(`${indent}${newContent}${trailing}${backslash}`);
             // Emit blank groups for the new lines (index offset by preservedCount).
             if (!isLastNew) {
               const bgIdx = preservedCount + j;
-              if (!hasEncodedNewlines && bgIdx < blankGroups.length && blankGroups[bgIdx].length > 0) {
-                for (const bl of blankGroups[bgIdx]) rebuiltLines.push(bl);
+              if (!hasEncodedNewlines && bgIdx < blankGroups.length && blankGroups[bgIdx]!.length > 0) {
+                for (const bl of blankGroups[bgIdx]!) rebuiltLines.push(bl);
               }
             }
           }
@@ -523,7 +523,7 @@ export function rebuildLineContinuation(
       backslash = '';
     } else {
       // Continuation line within a paragraph.
-      trailing = newContent.length > 0 && /\s$/.test(newContent) ? '' : ' ';
+      trailing = newContent!.length > 0 && /\s$/.test(newContent!) ? '' : ' ';
       backslash = '\\';
     }
     rebuiltLines.push(`${indent}${newContent}${trailing}${backslash}`);
@@ -536,8 +536,8 @@ export function rebuildLineContinuation(
       // breaks inline, so blank-line placement from original positions would be misleading).
       const singleInput = newContentLines.join('');
       const hasEncodedNewlines = /(?<!\\)\\n/.test(singleInput);
-      if (!hasEncodedNewlines && i < blankGroups.length && blankGroups[i].length > 0) {
-        for (const blankLine of blankGroups[i]) rebuiltLines.push(blankLine);
+      if (!hasEncodedNewlines && i < blankGroups.length && blankGroups[i]!.length > 0) {
+        for (const blankLine of blankGroups[i]!) rebuiltLines.push(blankLine);
       }
     }
   }

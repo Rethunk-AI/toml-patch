@@ -84,6 +84,6 @@ function done(): IteratorResult<undefined> {
  */
 function* utf16Iterator(str: string): Generator<string, void, unknown> {
   for (let i = 0; i < str.length; i++) {
-    yield str[i];
+    yield str[i]!;
   }
 }

@@ -221,7 +221,7 @@ function dateKind(iso: string): 'date' | 'time' | 'datetime' | 'offset' {
  */
 function fractionDigits(iso: string): string {
   const match = iso.match(/\.(\d+)/);
-  return match ? match[1].replace(/0+$/, '') : '';
+  return match ? match[1]!.replace(/0+$/, '') : '';
 }
 
 /** Fractional digits a millisecond count needs, without trailing zeros. */
@@ -290,7 +290,7 @@ export function stableStringify(object: any): string {
       for (let index = keys.length - 1; index >= 0; index--) {
         const key = keys[index];
         if (index < keys.length - 1) pending.push({ text: ',' });
-        pending.push({ value: value[key] });
+        pending.push({ value: value[key!] });
         pending.push({ text: ':' });
         pending.push({ text: JSON.stringify(key) });
       }
@@ -345,7 +345,7 @@ export function merge<TValue>(target: TValue[], values: TValue[]) {
   target.length = original_length + added_length;
 
   for (let i = 0; i < added_length; i++) {
-    target[original_length + i] = values[i];
+    target[original_length + i] = values[i]!;
   }
 }
 

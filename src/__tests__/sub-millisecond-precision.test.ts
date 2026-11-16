@@ -65,7 +65,7 @@ describe('sub-millisecond fractional seconds', () => {
 
     for (const [source, replacement, expected] of cases) {
       const updated: any = parse(source);
-      updated[Object.keys(updated)[0]] = replacement;
+      updated[Object.keys(updated)[0]!] = replacement;
       expect(patch(source, updated), source.trim()).toBe(expected);
     }
   });
@@ -95,7 +95,7 @@ describe('sub-millisecond fractional seconds', () => {
 
     for (const [source, replacement, expected] of cases) {
       const updated: any = parse(source);
-      updated[Object.keys(updated)[0]] = replacement;
+      updated[Object.keys(updated)[0]!] = replacement;
       expect(patch(source, updated), source.trim()).toBe(expected);
     }
   });
@@ -128,7 +128,7 @@ describe('sub-millisecond fractional seconds', () => {
 
     for (const [source, replacement, expected] of cases) {
       const updated: any = parse(source);
-      updated[Object.keys(updated)[0]] = replacement;
+      updated[Object.keys(updated)[0]!] = replacement;
       expect(patch(source, updated), source.trim()).toBe(expected);
     }
   });
@@ -167,7 +167,7 @@ describe('sub-millisecond fractional seconds', () => {
 
     for (const [source, replacement, expected] of cases) {
       const updated: any = parse(source);
-      updated[Object.keys(updated)[0]] = replacement;
+      updated[Object.keys(updated)[0]!] = replacement;
       expect(patch(source, updated), source.trim()).toBe(expected);
     }
   });
@@ -200,7 +200,7 @@ describe('sub-millisecond fractional seconds', () => {
 
     for (const [source, replacement, expected] of cases) {
       const updated: any = parse(source);
-      updated[Object.keys(updated)[0]] = replacement;
+      updated[Object.keys(updated)[0]!] = replacement;
       expect(patch(source, updated), source.trim()).toBe(expected);
     }
   });

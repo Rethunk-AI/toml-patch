@@ -56,7 +56,7 @@ export function spaceDottedKeySeparators(source: string): string {
   let result = source;
   for (let index = dotOffsets.length - 1; index >= 0; index--) {
     const offset = dotOffsets[index];
-    result = `${result.slice(0, offset)} . ${result.slice(offset + 1)}`;
+    result = `${result.slice(0, offset)} . ${result.slice(offset! + 1)}`;
   }
   return result;
 }
@@ -77,7 +77,7 @@ function main(): void {
   const args = process.argv.slice(2);
   const param = (name: string, def: number) => {
     const index = args.indexOf(`--${name}`);
-    return index >= 0 ? parseInt(args[index + 1], 10) : def;
+    return index >= 0 ? parseInt(args[index + 1]!, 10) : def;
   };
   const count = param('count', 200);
   const startSeed = param('seed', 0);

@@ -3,7 +3,7 @@ import { parse as smolParse, stringify as smolStringify, TomlDate } from 'smol-t
 import { parse, stringify } from '../';
 import patch from '../patch';
 import { patch as patchLite } from '../patch-lite-entry';
-import { PatchLiteError, PatchLiteErrorCode } from '../diff-lite';
+import { PatchLiteError, type PatchLiteErrorCode } from '../diff-lite';
 
 function expectLiteError(fn: () => unknown, code: PatchLiteErrorCode): void {
   try {
@@ -243,7 +243,7 @@ describe('patch-lite with a smol-toml parsed object', () => {
     for (const [doc, newValue, expected] of edits) {
       const updated = smolParse(doc);
       const key = Object.keys(updated)[0];
-      (updated as Record<string, unknown>)[key] = new TomlDate(newValue);
+      (updated as Record<string, unknown>)[key!] = new TomlDate(newValue);
 
       expect(patchLite(doc, updated)).toBe(expected);
     }

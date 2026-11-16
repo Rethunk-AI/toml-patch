@@ -5,25 +5,25 @@
 
 import {
   NodeType,
-  Document,
-  Table,
-  TableKey,
-  TableArray,
-  TableArrayKey,
-  Value,
-  KeyValue,
-  Key,
-  String,
-  Integer,
-  Float,
-  Boolean,
-  DateTime,
-  InlineArray,
-  InlineItem,
-  InlineTable,
-  Comment
+  type Document,
+  type Table,
+  type TableKey,
+  type TableArray,
+  type TableArrayKey,
+  type Value,
+  type KeyValue,
+  type Key,
+  type String,
+  type Integer,
+  type Float,
+  type Boolean,
+  type DateTime,
+  type InlineArray,
+  type InlineItem,
+  type InlineTable,
+  type Comment
 } from './cst';
-import { zero, cloneLocation, clonePosition, Position } from './location';
+import { zero, cloneLocation, clonePosition, type Position } from './location';
 import { LocalDate, LocalTime } from './parse-toml';
 import { padFractionalSeconds } from './date-format';
 import { shiftNode } from './writer';
@@ -255,7 +255,7 @@ function generateLiteralString(value: string): String {
     const lastLine = lines[lines.length - 1];
     endLocation = {
       line: lines.length,
-      column: lastLine.length
+      column: lastLine!.length
     };
   } else {
     endLocation = { line: 1, column: raw.length };
@@ -331,7 +331,7 @@ function endlocation (raw: string): Position {
     const lastLine = lines[lines.length - 1];
     return {
       line: lines.length,
-      column: lastLine.length
+      column: lastLine!.length
     };
   } else {
     return { line: 1, column: raw.length };
@@ -431,7 +431,7 @@ export function generateDateTime(value: Date, truncateZeroTimeInDates: boolean =
         value.getUTCMinutes() === 0 &&
         value.getUTCSeconds() === 0 &&
         value.getUTCMilliseconds() === 0) {
-      value = new LocalDate(value.toISOString().split('T')[0]);
+      value = new LocalDate(value.toISOString().split('T')[0]!);
     }
   
   // Custom date classes have their own toISOString() implementations

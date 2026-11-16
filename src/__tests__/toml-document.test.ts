@@ -258,7 +258,7 @@ describe('TomlDocument', () => {
     // Increment the date by one day
     const currentDate = jsObj.start_date;
     const nextDayTime = currentDate.getTime() + 24 * 60 * 60 * 1000;
-    const nextDay = new LocalDate(new Date(nextDayTime).toISOString().split('T')[0]);
+    const nextDay = new LocalDate(new Date(nextDayTime).toISOString().split('T')[0]!);
     
     jsObj.start_date = nextDay;
     

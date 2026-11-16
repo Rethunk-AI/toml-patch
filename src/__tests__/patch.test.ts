@@ -1596,7 +1596,7 @@ describe('should preserve all TOML date/time formats when patching', () => {
     test(name, () => {
     const parsed = parse(input);
     const key = Object.keys(parsed)[0];
-    const originalDate = parsed[key] as Date;
+    const originalDate = parsed[key!] as Date;
     
     // Add one day
     const nextDayTime = originalDate.getTime() + 24 * 60 * 60 * 1000;
@@ -1604,10 +1604,10 @@ describe('should preserve all TOML date/time formats when patching', () => {
     
     // Use the appropriate custom date class based on the original type
     if ((originalDate as any).isDate) {
-      nextDay = new LocalDate(new Date(nextDayTime).toISOString().split('T')[0]);
+      nextDay = new LocalDate(new Date(nextDayTime).toISOString().split('T')[0]!);
     } else if ((originalDate as any).isTime) {
-      const timeString = new Date(nextDayTime).toISOString().split('T')[1].split('Z')[0];
-      nextDay = new LocalTime(timeString, timeString);
+      const timeString = new Date(nextDayTime).toISOString().split('T')[1]!.split('Z')[0];
+      nextDay = new LocalTime(timeString!, timeString);
     } else if ((originalDate as any).isFloating) {
       const useSpaceSeparator = (originalDate as any).useSpaceSeparator;
       const isoString = new Date(nextDayTime).toISOString().replace('Z', '');
@@ -1621,11 +1621,11 @@ describe('should preserve all TOML date/time formats when patching', () => {
       // Add 24 hours to the original date string representation, not the UTC time
       const originalISOString = originalDate.toISOString();
       const datePart = originalISOString.split(useSpaceSeparator ? ' ' : 'T')[0];
-      const timePart = originalISOString.split(useSpaceSeparator ? ' ' : 'T')[1].replace(originalOffset || 'Z', '');
+      const timePart = originalISOString.split(useSpaceSeparator ? ' ' : 'T')[1]!.replace(originalOffset || 'Z', '');
       
       // Parse the date part and add one day
-      const [year, month, day] = datePart.split('-').map(Number);
-      const nextDate = new Date(year, month - 1, day + 1);
+      const [year, month, day] = datePart!.split('-').map(Number);
+      const nextDate = new Date(year!, month! - 1, day! + 1);
       const nextDateStr = `${nextDate.getFullYear()}-${String(nextDate.getMonth() + 1).padStart(2, '0')}-${String(nextDate.getDate()).padStart(2, '0')}`;
       
       const separator = useSpaceSeparator ? ' ' : 'T';
@@ -1636,7 +1636,7 @@ describe('should preserve all TOML date/time formats when patching', () => {
       nextDay = new Date(nextDayTime);
     }
     
-    parsed[key] = nextDay;
+    parsed[key!] = nextDay;
     const patched = patch(input, parsed);
     
     expect(patched.trim()).toEqual(expected);
@@ -2174,7 +2174,7 @@ test('should not emit a duplicate table header when removing the only nested tab
   const updated = parse(existing) as {
     route: { step?: { id: string }[] }[];
   };
-  delete updated.route[1].step;
+  delete updated.route[1]!.step;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2209,7 +2209,7 @@ test('should replace a nested table array under a sub-table with a static array 
   const updated = parse(existing) as {
     group: { id: string; meta: { name: string; route: { id: string }[] | string[] } }[];
   };
-  updated.group[1].meta.route = ['b'];
+  updated.group[1]!.meta.route = ['b'];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2256,7 +2256,7 @@ test('should scope a nested AOT replacement to the nearest owner across three AO
   const updated = parse(existing) as {
     org: { id: string; team: { id: string; route: { id: string }[] | string[] }[] }[];
   };
-  updated.org[0].team[1].route = ['r1'];
+  updated.org[0]!.team[1]!.route = ['r1'];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2300,7 +2300,7 @@ test('should remove a nested table array entry and keep the next parent entry\'s
   ` + '\n';
 
   const updated = parse(existing) as { group: { route: object[] }[] };
-  updated.group[0].route.splice(1, 1);
+  updated.group[0]!.route.splice(1, 1);
   const patched = patch(existing, updated);
   const expected = dedent`
     [[group]]
@@ -2344,7 +2344,7 @@ test('should remove one nested AOT entry without removing an interleaved sibling
   const updated = parse(existing) as {
     group: { id: string; route: { id: string; args?: { x: number } }[]; audit?: { id: string }[] }[];
   };
-  updated.group[0].route.splice(0, 1);
+  updated.group[0]!.route.splice(0, 1);
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2387,7 +2387,7 @@ test('should remove a sub-table from one table array entry and keep deeper sub-t
   ` + '\n';
 
   const updated = parse(existing) as { route: { id: string; args?: object }[] };
-  delete updated.route[1].args;
+  delete updated.route[1]!.args;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2420,7 +2420,7 @@ test('should not emit a duplicate table header when removing the only sub-table 
   const updated = parse(existing) as {
     route: { args?: { x?: number; y?: number } }[];
   };
-  delete updated.route[1].args;
+  delete updated.route[1]!.args;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2456,7 +2456,7 @@ test('should remove a sub-table from one nested table array entry and keep the o
   const updated = parse(existing) as {
     group: { id: string; route: { id: string; args?: { x?: number; y: number } }[] }[];
   };
-  delete updated.group[0].route[0].args!.x;
+  delete updated.group[0]!.route[0]!.args!.x;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2493,7 +2493,7 @@ test('should empty a nested table array on the second parent entry without corru
   ` + '\n';
 
   const updated = parse(existing) as { group: { id: string; route: object[] }[] };
-  updated.group[1].route = [];
+  updated.group[1]!.route = [];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2524,7 +2524,7 @@ test('should restore an emptied nested table array relative to its explicit host
   const updated = parse(existing) as {
     group: { id: string; meta: { name: string; route: object[] } }[];
   };
-  updated.group[0].meta.route = [];
+  updated.group[0]!.meta.route = [];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2559,7 +2559,7 @@ test('should remove a nested table array and its sub-tables from one parent entr
   const updated = parse(existing) as {
     group: { id: string; route?: object[] }[];
   };
-  delete updated.group[1].route;
+  delete updated.group[1]!.route;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2594,7 +2594,7 @@ test('should remove an implicit intermediate sub-table from one table array entr
   const updated = parse(existing) as {
     route: { id: string; args?: { deep?: { k: string } } }[];
   };
-  delete updated.route[1].args;
+  delete updated.route[1]!.args;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2627,7 +2627,7 @@ test('should restore an emptied nested table array under an implicit intermediat
   const updated = parse(existing) as {
     group: { id: string; meta: { route: object[] } }[];
   };
-  updated.group[0].meta.route = [];
+  updated.group[0]!.meta.route = [];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2657,7 +2657,7 @@ test('should remove all sibling dotted keys when deleting a dotted prefix inside
   const updated = parse(existing) as {
     group: { id: string; sub: { a?: { b: number; c: number } } }[];
   };
-  delete updated.group[0].sub.a;
+  delete updated.group[0]!.sub.a;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2685,7 +2685,7 @@ test('should materialise an emptied dotted-key sub-table inline when another ent
   const updated = parse(existing) as {
     route: { id: string; args: { x?: number; y?: number } }[];
   };
-  delete updated.route[1].args.y;
+  delete updated.route[1]!.args.y;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2717,7 +2717,7 @@ test('should materialise an emptied dotted-key sub-table as an inline table when
   const updated = parse(existing) as {
     route: { id: string; args: { x?: number; y?: number } }[];
   };
-  delete updated.route[1].args.y;
+  delete updated.route[1]!.args.y;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2750,7 +2750,7 @@ test('should materialise an emptied parent sub-table on one table array entry ev
   const updated = parse(existing) as {
     route: { id: string; args: { deep?: { k: string } } }[];
   };
-  delete updated.route[1].args.deep;
+  delete updated.route[1]!.args.deep;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2784,7 +2784,7 @@ test('should materialise an emptied implicit parent table without leaking the en
   const updated = parse(existing) as {
     group: { id: string; meta: { route?: object[] } }[];
   };
-  delete updated.group[1].meta.route;
+  delete updated.group[1]!.meta.route;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2820,7 +2820,7 @@ test('should materialise an emptied implicit parent table when deleting a nested
   const updated = parse(existing) as {
     group: { id: string; meta: { route?: object[] } }[];
   };
-  delete updated.group[1].meta.route;
+  delete updated.group[1]!.meta.route;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2856,7 +2856,7 @@ test('should remove both dotted keys and deeper sub-tables when deleting a sub-t
   const updated = parse(existing) as {
     route: { id: string; args?: { x: number; deep: { k: string } } }[];
   };
-  delete updated.route[0].args;
+  delete updated.route[0]!.args;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2890,7 +2890,7 @@ test('should replace a sub-table with a scalar within the owning table array ent
   const updated = parse(existing) as {
     route: { id: string; args: { value: string } | string }[];
   };
-  updated.route[1].args = 'none';
+  updated.route[1]!.args = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2924,7 +2924,7 @@ test('should replace an implicit sub-table with a scalar within the owning table
   const updated = parse(existing) as {
     route: { id: string; args: { deep: { k: string } } | string }[];
   };
-  updated.route[1].args = 'none';
+  updated.route[1]!.args = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -2962,7 +2962,7 @@ test('should replace a deeper sub-table with a scalar within the owning table ar
   const updated = parse(existing) as {
     route: { id: string; args: { x?: number; y?: number; deep: { k: string } | string } }[];
   };
-  updated.route[1].args.deep = 'none';
+  updated.route[1]!.args.deep = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3004,7 +3004,7 @@ test('should replace an implicit deeper sub-table with a scalar inside an explic
   const updated = parse(existing) as {
     route: { id: string; args: { x?: number; y?: number; deep: { leaf: { k: string } } | string } }[];
   };
-  updated.route[1].args.deep = 'none';
+  updated.route[1]!.args.deep = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3049,7 +3049,7 @@ test('should replace an implicit sub-table with a scalar inside a two-level expl
       args: { deep: { x?: number; y?: number; sub: { leaf: { k: string } } | string } };
     }[];
   };
-  updated.route[1].args.deep.sub = 'none';
+  updated.route[1]!.args.deep.sub = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3087,7 +3087,7 @@ test('should replace a nested table array with a static array on one parent entr
   const updated = parse(existing) as {
     group: { id: string; route: { id: string }[] | string[] }[];
   };
-  updated.group[1].route = ['b'];
+  updated.group[1]!.route = ['b'];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3121,7 +3121,7 @@ test('should replace a sub-table with a nested table array within the owning tab
   const updated = parse(existing) as {
     route: { id: string; args: { x?: number; y?: number } | { k: string }[] }[];
   };
-  updated.route[1].args = [{ k: 'b' }];
+  updated.route[1]!.args = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3161,7 +3161,7 @@ test('should replace a sub-table with multiple nested table array entries withou
   const updated = parse(existing) as {
     route: { id: string; args: { x?: number; y?: number; z?: number } | { k: string }[] }[];
   };
-  updated.route[1].args = [{ k: 'b1' }, { k: 'b2' }];
+  updated.route[1]!.args = [{ k: 'b1' }, { k: 'b2' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3211,7 +3211,7 @@ test('should preserve the full explicit parent path when replacing a nested sub-
       args: { deep: { base: string; items: { leaf: { id: string } } | { k: string }[] } };
     }[];
   };
-  updated.route[1].args.deep.items = [{ k: 'b' }];
+  updated.route[1]!.args.deep.items = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3261,7 +3261,7 @@ test('should replace an implicit sub-table within a nested table array owner wit
       route: { id: string; args: { deep: { value: string; sub: { leaf: { k: string } } | string } } }[];
     }[];
   };
-  updated.group[1].route[0].args.deep.sub = 'none';
+  updated.group[1]!.route[0]!.args.deep.sub = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3317,7 +3317,7 @@ test('should replace a deeper sub-table with multiple table array entries before
       args: { deep: { base: string; items: { leaf: { id: string } } | { k: string }[] } };
     }[];
   };
-  updated.route[1].args.deep.items = [{ k: 'b1' }, { k: 'b2' }];
+  updated.route[1]!.args.deep.items = [{ k: 'b1' }, { k: 'b2' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3379,7 +3379,7 @@ test('should replace a nested sub-table with a table array inside the owning nes
       }[];
     }[];
   };
-  updated.group[1].route[0].args.deep.items = [{ k: 'b' }];
+  updated.group[1]!.route[0]!.args.deep.items = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3429,7 +3429,7 @@ test('should preserve a quoted AOT key segment when replacing an implicit sub-ta
       args: { deep: { base: string; items: { leaf: { id: string } } | { k: string }[] } };
     }[];
   };
-  updated['route.name'][1].args.deep.items = [{ k: 'b' }];
+  updated['route.name'][1]!.args.deep.items = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3471,7 +3471,7 @@ test('should replace an explicit sub-table with a table array in only one table 
       args: { deep: { items: { value: string } | { k: string }[] } };
     }[];
   };
-  updated.route[1].args.deep.items = [{ k: 'b' }];
+  updated.route[1]!.args.deep.items = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3513,7 +3513,7 @@ test('should replace a nested table array with a sub-table under an explicit par
       args: { deep: { base: string; items: { k: string }[] | { leaf: string } } };
     }[];
   };
-  updated.route[1].args.deep.items = { leaf: 'b' };
+  updated.route[1]!.args.deep.items = { leaf: 'b' };
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3558,7 +3558,7 @@ test('should keep a replacement table array inside the last entry when an unrela
     }[];
     settings: { mode: string };
   };
-  updated.route[1].args.deep.items = [{ k: 'b' }];
+  updated.route[1]!.args.deep.items = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3608,7 +3608,7 @@ test('should insert a replacement table array where the old sub-table was, befor
       meta: { tag: string };
     }[];
   };
-  updated.route[1].args.deep.items = [{ k: 'b' }];
+  updated.route[1]!.args.deep.items = [{ k: 'b' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3893,7 +3893,7 @@ test('should insert a replacement table array below a sub-table defined through 
       args?: { deep: { base: string; items: { leaf: string } | { k: string }[] } };
     }>;
   };
-  updated.route[0].args!.deep.items = [{ k: 'a' }];
+  updated.route[0]!.args!.deep.items = [{ k: 'a' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3930,7 +3930,7 @@ test('should keep a replacement table array inline when an explicit sub-table in
       args?: { deep: { base: string; items: { leaf: string } | { k: string }[] } };
     }>;
   };
-  updated.route[0].args!.deep.items = [{ k: 'a' }];
+  updated.route[0]!.args!.deep.items = [{ k: 'a' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -3967,7 +3967,7 @@ test('should replace an implicit table with a dotted key when a sibling sub-tabl
       args?: { deep: { leaf: { id: string } } | string; other: { z: number } };
     }>;
   };
-  updated.route[0].args!.deep = 'none';
+  updated.route[0]!.args!.deep = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4007,7 +4007,7 @@ test('should insert a replacement table array before a nested table array that s
       steps?: { n: number }[];
     }>;
   };
-  updated.route[0].args = [{ k: 'a' }];
+  updated.route[0]!.args = [{ k: 'a' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4078,7 +4078,7 @@ test('should quote a dotted key segment in a replacement table array header in a
       meta?: { tag: string };
     }>;
   };
-  updated.route[0]['my.args']!.items = [{ k: 'a' }];
+  updated.route[0]!['my.args']!.items = [{ k: 'a' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4113,7 +4113,7 @@ test('should replace a dotted object inside an inline table array element in a t
       steps?: Array<{ name: string; opts: { level: number; mode: string } | string }>;
     }>;
   };
-  updated.route[0].steps![0].opts = 'none';
+  updated.route[0]!.steps![0]!.opts = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4150,7 +4150,7 @@ test('should replace an implicit table two levels below an explicit sub-table in
       cfg?: { mode: string; args: { deep: { leaf: { id: string } } | string; other: { z: number } } };
     }>;
   };
-  updated.route[0].cfg!.args.deep = 'none';
+  updated.route[0]!.cfg!.args.deep = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4253,7 +4253,7 @@ test('should replace an implicit table two levels below an explicit sub-table in
       cfg: { mode: string; args: { deep: { leaf: { id: string } } | string; other: { z: number } } };
     }>;
   };
-  updated.route[1].cfg.args.deep = 'none';
+  updated.route[1]!.cfg.args.deep = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4474,7 +4474,7 @@ test('should replace a sub-table of the last table array entry when an unrelated
     route: Array<{ id: string; meta?: { tag: string } | string }>;
     settings: { mode: string };
   };
-  updated.route[1].meta = 'none';
+  updated.route[1]!.meta = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4518,7 +4518,7 @@ test('should replace a sub-table with a scalar three table array levels deep', (
       }>;
     }>;
   };
-  updated.org[0].team[1].member![0].role = 'lead';
+  updated.org[0]!.team[1]!.member![0]!.role = 'lead';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4565,7 +4565,7 @@ test('should replace an implicit table below an explicit sub-table three table a
       }>;
     }>;
   };
-  updated.org[0].team[0].member[0].role!.scope.area = 'none';
+  updated.org[0]!.team[0]!.member[0]!.role!.scope.area = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4604,8 +4604,8 @@ test('should apply different structural replacements to two table array entries 
   const updated = parse(existing) as {
     route: Array<{ id: string; items: { leaf: { id: string } } | { k: string }[] | string; meta?: { tag: string } }>;
   };
-  updated.route[0].items = [{ k: 'a' }];
-  updated.route[1].items = 'none';
+  updated.route[0]!.items = [{ k: 'a' }];
+  updated.route[1]!.items = 'none';
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4641,7 +4641,7 @@ test('should replace a nested table array in an entry with an empty array', () =
   const updated = parse(existing) as {
     route: Array<{ id: string; steps?: { n: number }[]; meta?: { tag: string } }>;
   };
-  updated.route[0].steps = [];
+  updated.route[0]!.steps = [];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4671,7 +4671,7 @@ test('should add a nested object below an implicit parent whose sibling header s
   const updated = parse(existing) as {
     route: Array<{ id: string; args?: { other: { z: number }; deep?: { level: { n: number } } } }>;
   };
-  updated.route[0].args!.deep = { level: { n: 1 } };
+  updated.route[0]!.args!.deep = { level: { n: 1 } };
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4706,7 +4706,7 @@ test('should keep the leading comment of a sibling header when replacing the sub
   const updated = parse(existing) as {
     route: Array<{ id: string; items?: { leaf: { id: string } } | { k: string }[]; meta?: { tag: string } }>;
   };
-  updated.route[0].items = [{ k: 'a1' }];
+  updated.route[0]!.items = [{ k: 'a1' }];
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4772,7 +4772,7 @@ describe('sub-table replacement known issues', () => {
     const updated = parse(existing) as {
       route: Array<{ id: string; args?: { x: number; deep: { y: number } } | string }>;
     };
-    updated.route[0].args = 'none';
+    updated.route[0]!.args = 'none';
 
     const patched = patch(existing, updated);
     const expected = dedent`
@@ -4808,7 +4808,7 @@ describe('sub-table replacement known issues', () => {
     const updated = parse(existing) as {
       route: Array<{ path: string; limits: { rate: number } | { rate: number }[]; meta: { tag: string } }>;
     };
-    updated.route[0].limits = [{ rate: 1 }, { rate: 2 }];
+    updated.route[0]!.limits = [{ rate: 1 }, { rate: 2 }];
 
     const patched = patch(existing, updated);
     const expected = dedent`
@@ -4847,7 +4847,7 @@ test('should delete an explicit nested sub-table from one table array entry whil
   const updated = parse(existing) as {
     route: { id: string; args: { deep: { value: string; sub?: { leaf: string } } } }[];
   };
-  delete updated.route[1].args.deep.sub;
+  delete updated.route[1]!.args.deep.sub;
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4890,7 +4890,7 @@ test('should delete one nested table array entry without changing entries owned 
   const updated = parse(existing) as {
     group: { id: string; route: { id: string; args: { items: { name: string }[] } }[] }[];
   };
-  updated.group[0].route[0].args.items.splice(0, 1);
+  updated.group[0]!.route[0]!.args.items.splice(0, 1);
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4930,7 +4930,7 @@ test('should append a nested table array entry before later parent entries with 
   const updated = parse(existing) as {
     group: { id: string; route?: { id: string }[]; }[];
   };
-  updated.group[0].route!.push({ id: 'b' });
+  updated.group[0]!.route!.push({ id: 'b' });
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -4970,7 +4970,7 @@ test('should append multiple nested AOT entries without displacing comments on a
   const updated = parse(existing) as {
     group: { id: string; route: { id: string }[] }[];
   };
-  updated.group[0].route.push({ id: 'c' }, { id: 'd' });
+  updated.group[0]!.route.push({ id: 'c' }, { id: 'd' });
 
   const patched = patch(existing, updated);
   const expected = dedent`
@@ -6988,8 +6988,8 @@ describe('Mixed line endings', () => {
     ].join(''));
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('Mixed line endings detected');
-    expect(spy.mock.calls[0][0]).toContain('normalized to LF');
+    expect(spy.mock.calls[0]![0]).toContain('Mixed line endings detected');
+    expect(spy.mock.calls[0]![0]).toContain('normalized to LF');
 
     spy.mockRestore();
   });
@@ -7013,8 +7013,8 @@ describe('Mixed line endings', () => {
     patch(existing, obj);
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('Mixed line endings detected');
-    expect(spy.mock.calls[0][0]).toContain('normalized to CRLF');
+    expect(spy.mock.calls[0]![0]).toContain('Mixed line endings detected');
+    expect(spy.mock.calls[0]![0]).toContain('normalized to CRLF');
 
     spy.mockRestore();
   });
@@ -7034,7 +7034,7 @@ describe('Mixed line endings', () => {
     patch(existing, obj);
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('normalized to LF');
+    expect(spy.mock.calls[0]![0]).toContain('normalized to LF');
 
     spy.mockRestore();
   });
@@ -7073,8 +7073,8 @@ describe('Mixed line endings', () => {
     ].join(''));
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('Mixed line endings detected');
-    expect(spy.mock.calls[0][0]).toContain('normalized to LF');
+    expect(spy.mock.calls[0]![0]).toContain('Mixed line endings detected');
+    expect(spy.mock.calls[0]![0]).toContain('normalized to LF');
 
     spy.mockRestore();
   });
@@ -7098,8 +7098,8 @@ describe('Mixed line endings', () => {
     ].join(''));
 
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('Mixed line endings detected');
-    expect(spy.mock.calls[0][0]).toContain('normalized to LF');
+    expect(spy.mock.calls[0]![0]).toContain('Mixed line endings detected');
+    expect(spy.mock.calls[0]![0]).toContain('normalized to LF');
 
     spy.mockRestore();
   });
@@ -8810,7 +8810,7 @@ describe('removing a key whose value matches a sibling (#262)', () => {
       const parts = path.split('.');
       let parent = obj;
       for (let i = 0; i < parts.length - 1; i++) {
-        parent = parent[parts[i]] as Record<string, unknown>;
+        parent = parent[parts[i]!] as Record<string, unknown>;
       }
       return { parent, key: parts[parts.length - 1] };
     };
@@ -8818,8 +8818,8 @@ describe('removing a key whose value matches a sibling (#262)', () => {
     const { parent: fromParent, key: fromKey } = resolve(fromPath);
     const { parent: toParent, key: toKey } = resolve(toPath);
 
-    toParent[toKey] = fromParent[fromKey];
-    delete fromParent[fromKey];
+    toParent[toKey!] = fromParent[fromKey!];
+    delete fromParent[fromKey!];
   };
 
   test('should leave a genuine rename alone', () => {

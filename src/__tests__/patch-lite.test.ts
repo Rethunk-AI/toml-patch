@@ -3,7 +3,7 @@ import { Temporal } from '@js-temporal/polyfill';
 import { parse } from '../';
 import { LocalDate, LocalTime, LocalDateTime, OffsetDateTime } from '../parse-toml';
 import { patch } from '../patch-lite-entry';
-import { PatchLiteError, PatchLiteErrorCode } from '../diff-lite';
+import { PatchLiteError, type PatchLiteErrorCode } from '../diff-lite';
 
 function expectPatchError(fn: () => unknown, code: PatchLiteErrorCode): void {
   try {

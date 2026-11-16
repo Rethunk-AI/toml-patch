@@ -1,5 +1,5 @@
-import { CST, Block } from './cst';
-import { Position } from './location';
+import type { CST,Block } from './cst';
+import type { Position } from './location';
 
 /**
  * Compares two positions to determine their ordering.

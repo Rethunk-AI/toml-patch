@@ -10,27 +10,27 @@
 
 import {
   NodeType,
-  Document,
-  Table,
-  TableArray,
-  KeyValue,
-  Key,
-  Value,
-  String as StringNode,
-  Integer,
-  Float,
-  Boolean as BooleanNode,
-  DateTime,
-  InlineArray,
-  InlineArrayItem,
-  InlineTable,
-  InlineTableItem,
-  Comment,
-  TreeNode,
-  Block,
-  RowItem
+  type Document,
+  type Table,
+  type TableArray,
+  type KeyValue,
+  type Key,
+  type Value,
+  type String as StringNode,
+  type Integer,
+  type Float,
+  type Boolean as BooleanNode,
+  type DateTime,
+  type InlineArray,
+  type InlineArrayItem,
+  type InlineTable,
+  type InlineTableItem,
+  type Comment,
+  type TreeNode,
+  type Block,
+  type RowItem
 } from '../cst';
-import { clonePosition, Position, Location } from '../location';
+import { clonePosition, type Position, type Location } from '../location';
 import { generateKey } from '../generate';
 
 // ─── Seeded PRNG (mulberry32) ────────────────────────────────────────────
@@ -70,7 +70,7 @@ export class SeededRandom {
     if (typeof arr === 'string') {
       return arr[this.nextInt(arr.length)] as unknown as T;
     }
-    return arr[this.nextInt(arr.length)];
+    return arr[this.nextInt(arr.length)]!;
   }
 
   /** Pick a weighted random element. Weights are unnormalized. */
@@ -81,7 +81,7 @@ export class SeededRandom {
       r -= entry.weight;
       if (r <= 0) return entry.item;
     }
-    return items[items.length - 1].item;
+    return items[items.length - 1]!.item;
   }
 
   /**
@@ -660,13 +660,13 @@ export function serializeDocument(rng: SeededRandom, doc: Document): string {
 
 function serializeBlocks(rng: SeededRandom, blocks: Block[], lines: string[], indent = ''): void {
   for (let i = 0; i < blocks.length; i++) {
-    if (i > 0 && !isCommentNode(blocks[i - 1])) {
+    if (i > 0 && !isCommentNode(blocks[i - 1]!)) {
       // Add blank line before tables/table arrays (but not between comments and their targets)
-      if (blocks[i].type === NodeType.Table || blocks[i].type === NodeType.TableArray) {
+      if (blocks[i]!.type === NodeType.Table || blocks[i]!.type === NodeType.TableArray) {
         lines.push('');
       }
     }
-    serializeBlock(rng, blocks[i], lines, indent);
+    serializeBlock(rng, blocks[i]!, lines, indent);
   }
 }
 

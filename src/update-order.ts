@@ -1,8 +1,8 @@
 import {
-  Document,
-  Table,
-  TableArray,
-  TreeNode,
+  type Document,
+  type Table,
+  type TableArray,
+  type TreeNode,
   isDocument,
   isTable,
   isTableArray,
@@ -10,9 +10,9 @@ import {
   isInlineItem,
   hasItem
 } from './cst';
-import { Move } from './diff';
-import { Path, tryFindByPath } from './find-by-path';
-import { resolveGroups, normalizeSectionComments, Group } from './comment-ownership';
+import type { Move } from './diff';
+import { type Path, tryFindByPath } from './find-by-path';
+import { resolveGroups, normalizeSectionComments, type Group } from './comment-ownership';
 import { shiftNode, recalcContainerEnd } from './writer';
 
 /**
@@ -324,7 +324,7 @@ function applyContainerMoves(
   const finalUnits: Unit[] = units.map(unit => {
     if (unit.kind !== 'member' || !unit.movable) return unit;
     const key = unit.isSection ? sectionTargetOrder[sectionCursor++] : rootKvTargetOrder[rootKvCursor++];
-    return movableUnitsByKey.get(key)!;
+    return movableUnitsByKey.get(key!)!;
   });
 
   // Nothing to do if the permutation is the identity.
@@ -337,23 +337,23 @@ function applyContainerMoves(
   const containerFirstLine = isDocument(container) ? 1 : container.key.loc.end.line;
   const gapBefore: number[] = units.map((unit, i) => {
     if (i === 0) return unit.startLine - containerFirstLine;
-    return unit.startLine - units[i - 1].endLine - 1;
+    return unit.startLine - units[i - 1]!.endLine - 1;
   });
 
   let cursorEnd = containerFirstLine; // end line of whatever was placed immediately before
   for (let i = 0; i < finalUnits.length; i++) {
     const unit = finalUnits[i];
     const gap = gapBefore[i];
-    const newStart = (i === 0 ? cursorEnd : cursorEnd + 1) + gap;
-    const delta = newStart - unit.startLine;
+    const newStart = (i === 0 ? cursorEnd : cursorEnd + 1) + gap!;
+    const delta = newStart - unit!.startLine;
 
     if (delta !== 0) {
-      for (const item of unit.items) {
+      for (const item of unit!.items) {
         shiftNode(item, { lines: delta, columns: 0 });
       }
     }
 
-    cursorEnd = unit.endLine + delta;
+    cursorEnd = unit!.endLine + delta;
   }
 
   const newItems = finalUnits.flatMap(u => u.items);

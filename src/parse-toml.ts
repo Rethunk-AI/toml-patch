@@ -1,29 +1,29 @@
 import {
   NodeType,
-  KeyValue,
-  Table,
-  TableKey,
-  TableArray,
-  TableArrayKey,
-  Key,
-  Value,
-  String,
-  Integer,
-  Float,
-  Boolean,
-  DateTime,
-  InlineTable,
-  InlineArray,
-  InlineItem,
-  Comment,
-  CST,
-  Block,
-  TreeNode
+  type KeyValue,
+  type Table,
+  type TableKey,
+  type TableArray,
+  type TableArrayKey,
+  type Key,
+  type Value,
+  type String,
+  type Integer,
+  type Float,
+  type Boolean,
+  type DateTime,
+  type InlineTable,
+  type InlineArray,
+  type InlineItem,
+  type Comment,
+  type CST,
+  type Block,
+  type TreeNode
 } from './cst';
-import { Token, TokenType, tokenize, DOUBLE_QUOTE, SINGLE_QUOTE, NewlineScanState } from './tokenizer';
+import { type Token, TokenType, tokenize, DOUBLE_QUOTE, SINGLE_QUOTE, type NewlineScanState } from './tokenizer';
 import { parseString } from './parse-string';
 import Cursor from './cursor';
-import { clonePosition, cloneLocation, getLine, clearCachedLines, Location, Position } from './location';
+import { clonePosition, cloneLocation, getLine, clearCachedLines, type Location, type Position } from './location';
 import { setCommaSpace } from './inline-comma-space';
 import ParseError from './parse-error';
 
@@ -220,7 +220,7 @@ function validatePrefixedInt(
   raw: string, input: string, loc: any,
   prefix: string, validDigits: RegExp, name: string, invalidMsg?: string
 ): void {
-  const upper = prefix[0] + prefix[1].toUpperCase();
+  const upper = prefix[0] + prefix[1]!.toUpperCase();
   const capsRe = new RegExp('^[+\\-]?' + upper.replace(/([[\]])/g, '\\$1'));
   if (capsRe.test(raw)) {
     throw new ParseError(input, loc, `${name} prefix must be lowercase "${prefix}"`);
@@ -342,10 +342,10 @@ function rebaseBlock(block: Block, start: Position): void {
     } else if (node.type === NodeType.Table || node.type === NodeType.TableArray) {
       const table = node as Table | TableArray;
       stack.push(table.key);
-      for (let index = table.items.length - 1; index >= 0; index--) stack.push(table.items[index]);
+      for (let index = table.items.length - 1; index >= 0; index--) stack.push(table.items[index]!);
     } else if (node.type === NodeType.InlineTable || node.type === NodeType.InlineArray) {
       const items = (node as InlineTable | InlineArray).items;
-      for (let index = items.length - 1; index >= 0; index--) stack.push(items[index]);
+      for (let index = items.length - 1; index >= 0; index--) stack.push(items[index]!);
     }
   }
 }
@@ -602,7 +602,7 @@ function table(cursor: Cursor<Token>, input: string): Table | TableArray {
     const blocks = walkBlock(cursor, input) as Array<KeyValue | Comment>;
     // Push directly instead of merge to avoid function call overhead
     for (let bi = 0; bi < blocks.length; bi++) {
-      items.push(blocks[bi]);
+      items.push(blocks[bi]!);
     }
   }
 
@@ -611,7 +611,7 @@ function table(cursor: Cursor<Token>, input: string): Table | TableArray {
     loc: {
       start: clonePosition(key.loc!.start),
       end: items.length
-        ? clonePosition(items[items.length - 1].loc.end)
+        ? clonePosition(items[items.length - 1]!.loc.end)
         : clonePosition(key.loc!.end)
     },
     key: key as TableKey | TableArrayKey,
@@ -757,7 +757,7 @@ function getDaysInMonth(year: number, month: number): number {
     return isLeapYear ? 29 : 28;
   }
   
-  return daysPerMonth[month - 1];
+  return daysPerMonth[month - 1]!;
 }
 
 // Helper function to validate datetime format
@@ -800,7 +800,7 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
       );
     }
 
-    if (hours.length !== 2) {
+    if (hours!.length !== 2) {
       throw new ParseError(
         input,
         loc,
@@ -823,7 +823,7 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
       );
     }
 
-    const hourNum = parseInt(hours, 10);
+    const hourNum = parseInt(hours!, 10);
     if (hourNum < 0 || hourNum > 23) {
       throw new ParseError(
         input,
@@ -879,7 +879,7 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
 
   // Check for year with wrong number of digits (must be exactly 4)
   const yearMatch = raw.match(/^(\d+)-/);
-  if (yearMatch && yearMatch[1].length !== 4) {
+  if (yearMatch && yearMatch[1]!.length !== 4) {
     throw new ParseError(
       input,
       loc,
@@ -893,14 +893,14 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
   const dateMatch = raw.match(datePattern);
   if (dateMatch) {
     const [, , month, day] = dateMatch;
-    if (month.length !== 2) {
+    if (month!.length !== 2) {
       throw new ParseError(
         input,
         loc,
         `"${raw}": month must be 2 digits`
       );
     }
-    if (day.length !== 2) {
+    if (day!.length !== 2) {
       throw new ParseError(
         input,
         loc,
@@ -914,7 +914,7 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
   const timeMatch = raw.match(timePattern);
   if (timeMatch) {
     const [, hour, minute, second] = timeMatch;
-    validateTimeDigits(hour, minute, second, raw, input, loc);
+    validateTimeDigits(hour!, minute!, second, raw, input, loc);
   }
   
   // Check for standalone time (no date prefix)
@@ -922,7 +922,7 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
   const timeOnlyMatch = raw.match(timeOnlyPattern);
   if (timeOnlyMatch && !dateMatch) {
     const [, hour, minute, second] = timeOnlyMatch;
-    validateTimeDigits(hour, minute, second, raw, input, loc);
+    validateTimeDigits(hour!, minute!, second, raw, input, loc);
   }
   
   // Extract components for range validation (now we know they have the right length)
@@ -933,19 +933,19 @@ function validateDateTimeFormat(raw: string, input: string, loc: any): void {
     const [, year, month, day, hour, minute, second] = dateTimeMatch;
     
     // Validate month range (01-12)
-    const monthNum = parseInt(month, 10);
+    const monthNum = parseInt(month!, 10);
     if (monthNum < 1 || monthNum > 12) {
       throw new ParseError(input, loc, `"${raw}": month must be 01-12`);
     }
     
     // Validate day range (01-31 depending on month)
-    const dayNum = parseInt(day, 10);
+    const dayNum = parseInt(day!, 10);
     if (dayNum < 1 || dayNum > 31) {
       throw new ParseError(input, loc, `"${raw}": day must be 01-31`);
     }
     
     // Check if day is valid for the specific month
-    const yearNum = parseInt(year, 10);
+    const yearNum = parseInt(year!, 10);
     const daysInMonth = getDaysInMonth(yearNum, monthNum);
     if (dayNum > daysInMonth) {
       throw new ParseError(input, loc, `"${raw}": day ${day} invalid for ${year}-${month}`);
@@ -985,7 +985,7 @@ function float(cursor: Cursor<Token>, input: string): Float {
       view.setUint32(0, 0x00000000, true);
       view.setUint32(4, 0x7FF80000, true);
     }
-    value = buf[0];
+    value = buf[0]!;
     const sign: '+' | '-' | undefined =
       raw.startsWith('+') ? '+' :
       raw.startsWith('-') ? '-' :
@@ -1428,8 +1428,8 @@ function detectCommaSpace(items: { loc: Location }[]): number | undefined {
   for (let i = 1; i < items.length; i++) {
     const prev = items[i - 1];
     const next = items[i];
-    if (prev.loc.end.line === next.loc.start.line) {
-      const gap = next.loc.start.column - prev.loc.end.column;
+    if (prev!.loc.end.line === next!.loc.start.line) {
+      const gap = next!.loc.start.column - prev!.loc.end.column;
       if (gap >= 1) return gap;
     }
   }
@@ -1502,10 +1502,10 @@ function inlineTable(cursor: Cursor<Token>, input: string): [InlineTable, Commen
     const blocks = walkBlock(cursor, input);
     const item = blocks[0];
 
-    if (item.type === NodeType.KeyValue) {
+    if (item!.type === NodeType.KeyValue) {
       value.items.push({
         type: NodeType.InlineItem,
-        loc: cloneLocation(item.loc),
+        loc: cloneLocation(item!.loc),
         item: item as KeyValue,
         comma: false
       });
@@ -1594,8 +1594,8 @@ function inlineArray(cursor: Cursor<Token>, input: string): [InlineArray, Commen
 
       value.items.push({
         type: NodeType.InlineItem,
-        loc: cloneLocation(item.loc),
-        item,
+        loc: cloneLocation(item!.loc),
+        item: item!,
         comma: false
       });
       // Push remaining comments directly instead of slice + merge

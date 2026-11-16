@@ -487,9 +487,9 @@ describe('updateOrder warnings when a requested position could not be honored', 
 
     expect(result).toEqual(input); // left unchanged -- fruit stays non-contiguous
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('toml-patch: updateOrder could not honor the requested position for 1 entry');
-    expect(spy.mock.calls[0][0]).toContain('"fruit"');
-    expect(spy.mock.calls[0][0]).toContain('not contiguous');
+    expect(spy.mock.calls[0]![0]).toContain('toml-patch: updateOrder could not honor the requested position for 1 entry');
+    expect(spy.mock.calls[0]![0]).toContain('"fruit"');
+    expect(spy.mock.calls[0]![0]).toContain('not contiguous');
 
     spy.mockRestore();
   });
@@ -519,9 +519,9 @@ describe('updateOrder warnings when a requested position could not be honored', 
       hello.moon = 2
     ` + '\n');
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('toml-patch: updateOrder could not honor the requested position for 1 entry');
-    expect(spy.mock.calls[0][0]).toContain('t.hello.moon');
-    expect(spy.mock.calls[0][0]).toContain('unsupported location');
+    expect(spy.mock.calls[0]![0]).toContain('toml-patch: updateOrder could not honor the requested position for 1 entry');
+    expect(spy.mock.calls[0]![0]).toContain('t.hello.moon');
+    expect(spy.mock.calls[0]![0]).toContain('unsupported location');
 
     spy.mockRestore();
   });
@@ -646,8 +646,8 @@ describe('updateOrder warnings when a requested position could not be honored', 
 
     expect(result).toEqual(input);
     expect(spy).toHaveBeenCalledTimes(1);
-    expect(spy.mock.calls[0][0]).toContain('toml-patch: updateOrder could not honor the requested position for 1 entry');
-    expect(spy.mock.calls[0][0]).toContain('cannot represent');
+    expect(spy.mock.calls[0]![0]).toContain('toml-patch: updateOrder could not honor the requested position for 1 entry');
+    expect(spy.mock.calls[0]![0]).toContain('cannot represent');
 
     spy.mockRestore();
   });

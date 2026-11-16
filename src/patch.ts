@@ -6,15 +6,15 @@ import toTOML, { toTOMLCursor } from './to-toml';
 import { TomlFormat } from './toml-format';
 import {
   isKeyValue,
-  WithItems,
-  KeyValue,
-  Comment,
+  type WithItems,
+  type KeyValue,
+  type Comment,
   isTable,
-  TreeNode,
-  Key,
-  Document,
+  type TreeNode,
+  type Key,
+  type Document,
   isDocument,
-  Block,
+  type Block,
   NodeType,
   isTableArray,
   isInlineArray,
@@ -23,22 +23,22 @@ import {
   isString,
   isComment,
   isInteger as isIntegerNode,
-  Integer as IntegerNode,
+  type Integer as IntegerNode,
   isFloat,
-  Float as FloatNode,
+  type Float as FloatNode,
   hasItem,
   hasItems,
-  InlineItem,
-  InlineTable,
-  InlineArray,
-  CST,
-  Table,
-  TableArray,
-  Value,
+  type InlineItem,
+  type InlineTable,
+  type InlineArray,
+  type CST,
+  type Table,
+  type TableArray,
+  type Value,
   isDateTime
 } from './cst';
-import diff, { Change, ChangeType, Move, isAdd, isEdit, isRemove, isMove, isRename } from './diff';
-import findByPath, { tryFindByPath, findParent, Path } from './find-by-path';
+import diff, { type Change, ChangeType, type Move, isAdd, isEdit, isRemove, isMove, isRename } from './diff';
+import findByPath, { tryFindByPath, findParent, type Path } from './find-by-path';
 import { last, isInteger, arraysEqual, isTemporal, temporalToTomlString, hasTemporal, isObject, stableStringify, isDate, datesEqual, isNegativeNan } from './utils';
 import { insert, replace, remove, applyWrites, applyBracketSpacing, hasInlineContainerNeedingTighten, deleteInlineContainerNeedingTighten, shiftNode, recalcContainerEnd, addExitOffset, markDirty, getPendingEnterOffsets, getExitOffsets, setRootIndentWidth, setInlineIndentColumn, perLine } from './writer';
 import { removeMember, moveInlineElement, findHostContainer, resolveGroups } from './comment-ownership';
@@ -144,7 +144,7 @@ function inlineTableAddIndex(parent: InlineTable, child: KeyValue, beforeKey?: s
   const prefix = childKey.slice(0, -1);
   for (let index = 0; index < parent.items.length; index++) {
     const item = parent.items[index];
-    if (!isInlineItem(item) || !isKeyValue(item.item)) continue;
+    if (!isInlineItem(item!) || !isKeyValue(item.item)) continue;
     const existingKey = item.item.key.value;
     if (existingKey.length === childKey.length &&
         arraysEqual(existingKey.slice(0, -1), prefix) &&
@@ -231,12 +231,12 @@ function normalizeAotEntryComments(doc: Document, ancestorBoundariesOnly = false
     // Handle both Table and TableArray: comments between a section header
     // and its next sibling AOT entry, or between consecutive AOT entries,
     // are parsed as trailing children of the first section. Promote them.
-    if (!((isTable(item) || isTableArray(item)) && hasItems(item))) continue;
+    if (!((isTable(item!) || isTableArray(item!)) && hasItems(item))) continue;
 
     const containerItems = item.items as TreeNode[];
     // Find trailing comments at the end of this entry
     let commentStart = containerItems.length;
-    while (commentStart > 0 && isComment(containerItems[commentStart - 1])) {
+    while (commentStart > 0 && isComment(containerItems[commentStart - 1]!)) {
       commentStart--;
     }
 
@@ -466,7 +466,7 @@ function reorder(changes: Change[]): Change[] {
 
   for (let i = 0; i < changes.length; i++) {
     const change = changes[i];
-    if (isRemove(change)) {
+    if (isRemove(change!)) {
       // The array this Remove targets, and the Remove's own index within it.
       const aIdx = last(change.path);
       const aPrefix = change.path.slice(0, -1);
@@ -484,7 +484,7 @@ function reorder(changes: Change[]): Change[] {
         // safe to cross (fuzz seed 50448), and Adds/Moves in a DIFFERENT array
         // context do not shift this one (fuzz seeds 84522/473477) — so only a
         // same-array Add or Move forms a barrier.
-        if (isAdd(next_change)) {
+        if (isAdd(next_change!)) {
           const bIdx = last(next_change.path);
           if (typeof bIdx === 'number' && arraysEqual(aPrefix, next_change.path.slice(0, -1))) {
             // A source-coordinate remove remains valid against the original array and
@@ -495,7 +495,7 @@ function reorder(changes: Change[]): Change[] {
               let sourceRemove = -1;
               for (let k = j + 1; k < changes.length; k++) {
                 const candidate = changes[k];
-                if (isRemove(candidate)
+                if (isRemove(candidate!)
                     && candidate.coordinate === 'source'
                     && arraysEqual(aPrefix, candidate.path.slice(0, -1))) {
                   sourceRemove = k;
@@ -504,7 +504,7 @@ function reorder(changes: Change[]): Change[] {
               }
               if (sourceRemove !== -1) {
                 const sourceChange = changes.splice(sourceRemove, 1)[0];
-                changes.splice(i, 0, sourceChange);
+                changes.splice(i, 0, sourceChange!);
                 i = -1;
                 break;
               }
@@ -516,14 +516,14 @@ function reorder(changes: Change[]): Change[] {
         }
         // Object-key Moves (`updateOrder`, key set) reorder object members, not
         // array elements, so they never shift this array's indices.
-        if (isMove(next_change) && next_change.key === undefined) {
+        if (isMove(next_change!) && next_change.key === undefined) {
           if (arraysEqual(aPrefix, next_change.path)) {
             break;
           }
           j++;
           continue;
         }
-        if (!isRemove(next_change)) { j++; continue; }
+        if (!isRemove(next_change!)) { j++; continue; }
 
         const bIdx = last(next_change.path);
         const bPrefix = next_change.path.slice(0, -1);
@@ -831,11 +831,11 @@ function decimalPlacesOfRaw(raw: string): number {
 /** Renders a value in TOML exponent notation (e.g. `1.0e11`) with at least `minimumDecimals` decimals. */
 function renderExponentNotation(value: number, minimumDecimals: number, uppercaseExponent = false): string {
   const [mantissa, exponent] = value.toExponential().split(/[eE]/);
-  const decimals = Math.max(minimumDecimals, decimalPlacesOfRaw(mantissa));
+  const decimals = Math.max(minimumDecimals, decimalPlacesOfRaw(mantissa!));
   const renderedMantissa = decimals > 0
     ? Number(mantissa).toFixed(decimals)
     : String(Number(mantissa));
-  return `${renderedMantissa}${uppercaseExponent ? 'E' : 'e'}${exponent.replace(/^\+/, '')}`;
+  return `${renderedMantissa}${uppercaseExponent ? 'E' : 'e'}${exponent!.replace(/^\+/, '')}`;
 }
 
 /** Detects the radix and prefix of a prefixed integer literal (`0x`/`0o`/`0b`). */
@@ -934,7 +934,7 @@ function preserveFormatting(
       }
       // Preserve +00:00 / -00:00 vs Z offset format
       if (/(?:\+00:00|-00:00)/.test(originalRaw) && raw.endsWith('Z')) {
-        const offset = originalRaw.match(/([+-]00:00)/)![1];
+        const offset = originalRaw.match(/([+-]00:00)/)![1]!;
         raw = raw.replace(/Z$/, offset);
       }
       // minimumTimeDecimals is a floor on the written digits, and a Temporal
@@ -1035,8 +1035,8 @@ function preserveFormatting(
     const originalHadTrailingCommas = arrayHadTrailingCommas(existing);
     if (replacement.items.length > 0) {
       const lastItem = replacement.items[replacement.items.length - 1];
-      if (lastItem.comma !== originalHadTrailingCommas) {
-        lastItem.comma = originalHadTrailingCommas;
+      if (lastItem!.comma !== originalHadTrailingCommas) {
+        lastItem!.comma = originalHadTrailingCommas;
         // Adding a trailing comma widens the array by one column, but the
         // regenerated/replacement value's `loc.end` was laid out for the
         // comma-less form.  Without extending it, the closing `]` (written at
@@ -1054,8 +1054,8 @@ function preserveFormatting(
     const originalHadTrailingCommas = tableHadTrailingCommas(existing);
     if (replacement.items.length > 0) {
       const lastItem = replacement.items[replacement.items.length - 1];
-      if (lastItem.comma !== originalHadTrailingCommas) {
-        lastItem.comma = originalHadTrailingCommas;
+      if (lastItem!.comma !== originalHadTrailingCommas) {
+        lastItem!.comma = originalHadTrailingCommas;
         // Same as the array case above: make room for the added comma before
         // the closing `}`.
         if (originalHadTrailingCommas) {
@@ -1120,7 +1120,7 @@ function applyChanges(
     const idx = items.indexOf(table as TreeNode);
     if (idx > 0) {
       const prev = items[idx - 1];
-      if (isComment(prev) && prev.loc.end.line + 1 === table.loc.start.line) {
+      if (isComment(prev!) && prev.loc.end.line + 1 === table.loc.start.line) {
         materialisedTables.add(table);
       }
     }
@@ -1142,16 +1142,16 @@ function applyChanges(
       for (let i = 0; i < node.items.length; i++) {
         const item = node.items[i];
         let key: Path = [];
-        if (isKeyValue(item)) {
+        if (isKeyValue(item!)) {
           key = item.key.value;
-        } else if (isTable(item) || isTableArray(item)) {
+        } else if (isTable(item!) || isTableArray(item!)) {
           key = item.key.item.value;
           if (isTableArray(item)) {
             const ks = stableStringify(key);
             indexes[ks] = (indexes[ks] ?? -1) + 1;
             key = key.concat(indexes[ks]);
           }
-        } else if (isInlineItem(item)) {
+        } else if (isInlineItem(item!)) {
           if (isKeyValue(item.item)) {
             key = item.item.key.value;
           } else {
@@ -1159,7 +1159,7 @@ function applyChanges(
           }
         }
         const full = key.length ? path.concat(key) : path;
-        const found = walk(item, full);
+        const found = walk(item!, full);
         if (found) return found;
       }
       return undefined;
@@ -1470,7 +1470,7 @@ function applyChanges(
         : false;
     const siblingContainer = sibling as InlineArray | InlineTable | undefined;
     const siblingBracketSpacing = siblingContainer && (siblingContainer.items.length > 0)
-      ? siblingContainer.items[0].loc.start.column - siblingContainer.loc.start.column > 1
+      ? siblingContainer.items[0]!.loc.start.column - siblingContainer.loc.start.column > 1
       : undefined;
     const multiline = resolveInlineContainerLayout(
       kind,
@@ -1662,7 +1662,7 @@ function applyChanges(
     };
     for (let index = 0; index < items.length; index++) {
       const entry = items[index];
-      if (!isTableArray(entry) || !arraysEqual(entry.key.item.value, entryKey) ||
+      if (!isTableArray(entry!) || !arraysEqual(entry.key.item.value, entryKey) ||
           (ownerScope && !ownerScope.has(entry))) continue;
 
       collectInlineTableStyles(entry, entryKey);
@@ -1783,13 +1783,13 @@ function applyChanges(
             // depending on the format path; fill in the gap when siblings have it.
             if (isInlineItem(child) && isInlineTable(child.item) && child.item.items.length > 0) {
               const table = child.item;
-              const alreadySpaced = table.items[0].loc.start.column - table.loc.start.column > 1;
+              const alreadySpaced = table.items[0]!.loc.start.column - table.loc.start.column > 1;
               if (!alreadySpaced) {
                 const sibling = (existingArray.items as InlineItem[])
                   .map(item => item.item)
                   .find(item => isInlineTable(item) && item.items.length > 0) as InlineTable | undefined;
                 const siblingSpaced = sibling
-                  && sibling.items[0].loc.start.column - sibling.loc.start.column > 1;
+                  && sibling.items[0]!.loc.start.column - sibling.loc.start.column > 1;
                 if (siblingSpaced) {
                   applyBracketSpacing(original, table, true);
                 }
@@ -1952,14 +1952,14 @@ function applyChanges(
             let lastSubTable = index - 1;
             for (let i = index; i < document.items.length; i++) {
               const item = document.items[i];
-              if (isTableArray(item)) {
+              if (isTableArray(item!)) {
                 const itemKey = (item as TableArray).key.item.value;
                 if (itemKey.length < aotKey.length
                     && arraysEqual(aotKey.slice(0, itemKey.length), itemKey)) {
                   break;
                 }
               }
-              const key = isTable(item) || isTableArray(item)
+              const key = isTable(item!) || isTableArray(item!)
                 ? (item as Table | TableArray).key.item.value
                 : undefined;
               if (key && key.length > aotKey.length
@@ -2427,15 +2427,15 @@ function applyChanges(
                 // "Value already defined" (fuzz seed 3607).  Section
                 // siblings ([table]/[[array]] extending the prefix) conflict
                 // the same way and are removed too.
-                const siblingKey = isKeyValue(sibling)
+                const siblingKey = isKeyValue(sibling!)
                   ? sibling.key.value
-                  : isTable(sibling) || isTableArray(sibling)
+                  : isTable(sibling!) || isTableArray(sibling!)
                     ? sibling.key.item.value
                     : undefined;
                 if (siblingKey
                     && siblingKey.length >= truncatedPrefix.length
                     && arraysEqual(siblingKey.slice(0, truncatedPrefix.length), truncatedPrefix)) {
-                  removeMember(original, containerParent, sibling);
+                  removeMember(original, containerParent, sibling!);
                 }
               }
             }
@@ -2521,15 +2521,15 @@ function applyChanges(
                 if (sibling === existing) continue;
                 // >= (not just >), and sections count too — see the
                 // isKeyValue/isKeyValue branch above (fuzz seed 3607).
-                const siblingKey = isKeyValue(sibling)
+                const siblingKey = isKeyValue(sibling!)
                   ? sibling.key.value
-                  : isTable(sibling) || isTableArray(sibling)
+                  : isTable(sibling!) || isTableArray(sibling!)
                     ? sibling.key.item.value
                     : undefined;
                 if (siblingKey
                     && siblingKey.length >= truncatedPrefix.length
                     && arraysEqual(siblingKey.slice(0, truncatedPrefix.length), truncatedPrefix)) {
-                  removeMember(original, containerParent, sibling);
+                  removeMember(original, containerParent, sibling!);
                 }
               }
             }
@@ -2614,17 +2614,17 @@ function applyChanges(
               for (let si = parentItems.length - 1; si >= 0; si--) {
                 const sibling = parentItems[si];
                 if (sibling === existing) continue;
-                const siblingKey = isKeyValue(sibling)
+                const siblingKey = isKeyValue(sibling!)
                   ? sibling.key.value
-                  : isInlineItem(sibling) && isKeyValue(sibling.item)
+                  : isInlineItem(sibling!) && isKeyValue(sibling.item)
                     ? sibling.item.key.value
-                    : isTable(sibling) || isTableArray(sibling)
+                    : isTable(sibling!) || isTableArray(sibling!)
                       ? sibling.key.item.value
                       : undefined;
                 if (siblingKey
                     && siblingKey.length >= truncatedPrefix.length
                     && arraysEqual(siblingKey.slice(0, truncatedPrefix.length), truncatedPrefix)) {
-                  removeMember(original, scanParent, sibling);
+                  removeMember(original, scanParent, sibling!);
                 }
               }
             }
@@ -2703,17 +2703,17 @@ function applyChanges(
               for (let si = parentItems.length - 1; si >= 0; si--) {
                 const sibling = parentItems[si];
                 if (sibling === existing) continue;
-                const siblingKey = isKeyValue(sibling)
+                const siblingKey = isKeyValue(sibling!)
                   ? sibling.key.value
-                  : isInlineItem(sibling) && isKeyValue(sibling.item)
+                  : isInlineItem(sibling!) && isKeyValue(sibling.item)
                     ? sibling.item.key.value
-                    : isTable(sibling) || isTableArray(sibling)
+                    : isTable(sibling!) || isTableArray(sibling!)
                       ? sibling.key.item.value
                       : undefined;
                 if (siblingKey
                     && siblingKey.length >= truncatedPrefix.length
                     && arraysEqual(siblingKey.slice(0, truncatedPrefix.length), truncatedPrefix)) {
-                  removeMember(original, scanParent, sibling);
+                  removeMember(original, scanParent, sibling!);
                 }
               }
             }
@@ -2781,7 +2781,7 @@ function applyChanges(
           }
 
           // Regenerate a fresh KV using parseJS on just the single key-value
-          const freshDoc = parseJS({ [lastSegment[0]]: jsValue }, format);
+          const freshDoc = parseJS({ [lastSegment[0]!]: jsValue }, format);
           const freshKV = freshDoc.items[0] as KeyValue;
 
           // Sub-tables of a table-array entry are document siblings in the CST,
@@ -2920,7 +2920,7 @@ function applyChanges(
           const aotOwner = findAotEntryForPath(original, navPath);
 
           // Regenerate a fresh KV using parseJS on just the single key-value
-          const freshDoc = parseJS({ [lastSegment[0]]: jsValue }, format);
+          const freshDoc = parseJS({ [lastSegment[0]!]: jsValue }, format);
           const freshKV = freshDoc.items[0] as KeyValue;
 
           // When the whole AOT collapsed to an array that no longer holds
@@ -3231,7 +3231,7 @@ function applyChanges(
                 if (ownerIndex >= 0) {
                   applyWrites(original);
                   const owner = original.items[ownerIndex];
-                  const gap = emptyTable.loc.start.line - owner.loc.end.line - 1;
+                  const gap = emptyTable.loc.start.line - owner!.loc.end.line - 1;
                   if (gap > 0) {
                     for (const item of (original.items as TreeNode[]).slice(ownerIndex + 1)) {
                       shiftNode(item, { lines: -gap, columns: 0 });
@@ -3255,7 +3255,7 @@ function applyChanges(
           const owner = findAotEntryForPath(original, change.path);
           const prefixNodes = findAotScopedDocumentItems(original, cstPath, owner);
           if (prefixNodes.length > 0) {
-            const firstPrefixIndex = (original.items as TreeNode[]).indexOf(prefixNodes[0]);
+            const firstPrefixIndex = (original.items as TreeNode[]).indexOf(prefixNodes[0]!);
             for (const prefixNode of prefixNodes) {
               removeMember(original, original, prefixNode);
             }
@@ -3525,7 +3525,7 @@ function applyChanges(
           } else {
             for (let i = nodeIndex - 1; i >= 0; i--) {
               const sibling = siblings[i];
-              if (!isTableArray(sibling)) continue;
+              if (!isTableArray(sibling!)) continue;
               const siblingKey = sibling.key.item.value;
               if (key.length > siblingKey.length && arraysEqual(key.slice(0, siblingKey.length), siblingKey)) {
                 aotOwner = sibling;
@@ -3540,7 +3540,7 @@ function applyChanges(
             const ownerKey = aotOwner!.key.item.value;
             for (let i = ownStart + 1; i < siblings.length; i++) {
               const s = siblings[i];
-              if (!isTableArray(s)) continue;
+              if (!isTableArray(s!)) continue;
               const sKey = s.key.item.value;
               if (sKey.length <= ownerKey.length && arraysEqual(sKey, ownerKey.slice(0, sKey.length))) {
                 ownEnd = i;
@@ -3853,7 +3853,7 @@ function applyChanges(
                       .map(part => IS_BARE_KEY.test(part) ? part : JSON.stringify(part).replace(/\x7f/g, '\\u007f'))
                       .join('.');
                     const freshKv = Array.from(parseTOML(`${freshKey} = {}`))[0];
-                    if (isKeyValue(freshKv)) {
+                    if (isKeyValue(freshKv!)) {
                       const inlineItem = generateInlineItem(freshKv);
                       inlineItem.comma = removedInlineComma ?? false;
                       // The removal above left a pending enter offset on the
@@ -3907,7 +3907,7 @@ function applyChanges(
                       .map(part => IS_BARE_KEY.test(part) ? part : JSON.stringify(part).replace(/\x7f/g, '\\u007f'))
                       .join('.');
                     const freshKv = Array.from(parseTOML(`${freshKey} = {}`))[0];
-                    if (isKeyValue(freshKv)) {
+                    if (isKeyValue(freshKv!)) {
                       applyWrites(original);
                       const insertIndex = containerItemIndex >= 0
                         ? Math.min(containerItemIndex, container.items.length)
@@ -3994,7 +3994,7 @@ function applyChanges(
 
         const node = (parent as WithItems).items[change.from];
 
-        moveInlineElement(original, parent, node, change.to);
+        moveInlineElement(original, parent, node!, change.to);
       } else {
         // TableArray sequence: the path refers to a collection of [[name]] entries
         // spread across Document.items (each at an indexed sub-path).
@@ -4025,12 +4025,12 @@ function applyChanges(
 
         // Also compute the original gap between the last group item and
         // whatever comes after it in line order, for exit-offset compensation.
-        const lastGroupEnd = groupOriginalPos[groupOriginalPos.length - 1].endLine;
+        const lastGroupEnd = groupOriginalPos[groupOriginalPos.length - 1]!.endLine;
         let originalAfterGap: number | undefined;
         for (let k = 0; k < original.items.length; k++) {
           const item = original.items[k];
-          if (item.loc.start.line > lastGroupEnd) {
-            originalAfterGap = item.loc.start.line - lastGroupEnd;
+          if (item!.loc.start.line > lastGroupEnd) {
+            originalAfterGap = item!.loc.start.line - lastGroupEnd;
             break;
           }
         }
@@ -4040,17 +4040,17 @@ function applyChanges(
         // should be preserved between the moved entry and what follows.
         if (originalAfterGap === undefined && groupFirstIdx > 0) {
           const beforeGroup = original.items[groupFirstIdx - 1];
-          originalAfterGap = groupOriginalPos[0].startLine - beforeGroup.loc.end.line;
+          originalAfterGap = groupOriginalPos[0]!.startLine - beforeGroup!.loc.end.line;
         }
 
         // Remove each group item from the Document (same discipline as removeMember).
         const memberIdx = fromGroup ? fromGroup.items.indexOf(fromNode) : 0;
         for (let i = 0; i <= memberIdx; i++) {
-          if (!(original.items as TreeNode[]).includes(groupItems[i])) continue;
-          remove(original, original, groupItems[i]);
+          if (!(original.items as TreeNode[]).includes(groupItems[i]!)) continue;
+          remove(original, original, groupItems[i]!);
         }
         for (let i = memberIdx + 1; i < groupItems.length; i++) {
-          const idx = (original.items as TreeNode[]).indexOf(groupItems[i]);
+          const idx = (original.items as TreeNode[]).indexOf(groupItems[i]!);
           if (idx >= 0) (original.items as TreeNode[]).splice(idx, 1);
         }
 
@@ -4061,11 +4061,11 @@ function applyChanges(
         const toEntry = tryFindByPath(original, change.path.concat(change.to));
         let toIndex: number;
         let targetHasLeadingComment = false;
-        const sourceHadLeadingComment = fromGroup && fromGroup.items[0] !== fromNode && isComment(fromGroup.items[0]);
+        const sourceHadLeadingComment = fromGroup && fromGroup.items[0] !== fromNode && isComment(fromGroup.items[0]!);
         if (toEntry) {
           const postGroups = resolveGroups(original);
           const targetGroup = postGroups.find(s => s.member === toEntry);
-          targetHasLeadingComment = !!(targetGroup && targetGroup.items[0] !== toEntry && isComment(targetGroup.items[0]));
+          targetHasLeadingComment = !!(targetGroup && targetGroup.items[0] !== toEntry && isComment(targetGroup.items[0]!));
           if (targetHasLeadingComment && sourceHadLeadingComment) {
             toIndex = original.items.indexOf(targetGroup!.items[0] as any);
           } else {
@@ -4078,10 +4078,10 @@ function applyChanges(
         // Capture the original gap at the target position so we can
         // reproduce it for the first group item.
         const targetPrevEnd = toIndex > 0
-          ? original.items[toIndex - 1].loc.end.line
+          ? original.items[toIndex - 1]!.loc.end.line
           : 0;
         const targetFirstLine = toIndex < original.items.length
-          ? original.items[toIndex].loc.start.line
+          ? original.items[toIndex]!.loc.start.line
           : undefined;
 
         // Insert group items in forward order at incrementing indices.
@@ -4102,18 +4102,18 @@ function applyChanges(
           //    before the insertion point (mixed blank lines case).
           const shouldOverride = isCommentedSwap || (sourceHadLeadingComment && toIndex > 0 && toIndex < original.items.length);
           if (shouldOverride && insertIdx > 0) {
-            const prevEnd = i === 0 ? targetPrevEnd : groupOriginalPos[i - 1].endLine;
+            const prevEnd = i === 0 ? targetPrevEnd : groupOriginalPos[i - 1]!.endLine;
             const origLeading = (i === 0 && targetFirstLine !== undefined)
               ? targetFirstLine - targetPrevEnd
-              : groupOriginalPos[i].startLine - prevEnd;
-            const isSquare = isTable(item) || isTableArray(item);
+              : groupOriginalPos[i]!.startLine - prevEnd;
+            const isSquare = isTable(item!) || isTableArray(item!);
             const defaultLeading = isSquare ? 2 : 1;
             if (origLeading !== defaultLeading) {
               itemLeadingLines = origLeading;
             }
           }
 
-          insert(original, original, item, insertIdx, undefined, undefined, itemLeadingLines);
+          insert(original, original, item!, insertIdx, undefined, undefined, itemLeadingLines);
           insertIdx++;
         }
 
@@ -4126,11 +4126,11 @@ function applyChanges(
           const afterStart = original.items.indexOf(lastItem as any) + 1;
           if (afterStart < original.items.length) {
             const nextItem = original.items[afterStart];
-            const newGap = nextItem.loc.start.line - lastItem.loc.end.line;
+            const newGap = nextItem!.loc.start.line - lastItem!.loc.end.line;
             const delta = originalAfterGap - newGap;
             if (delta !== 0) {
               for (let j = afterStart; j < original.items.length; j++) {
-                shiftNode(original.items[j], { lines: delta, columns: 0 });
+                shiftNode(original.items[j]!, { lines: delta, columns: 0 });
               }
             }
           }
@@ -4151,7 +4151,7 @@ function applyChanges(
       // matching segment in place.
       if (!parent) {
         const prefixNodes = findDocumentItemsByKeyPrefix(original, sourcePath);
-        if (prefixNodes.length === 1 && (isTable(prefixNodes[0]) || isTableArray(prefixNodes[0]))) {
+        if (prefixNodes.length === 1 && (isTable(prefixNodes[0]!) || isTableArray(prefixNodes[0]!))) {
           const node = prefixNodes[0] as Table | TableArray;
           const keyHolder = node.key;
           const key = hasItem(keyHolder) ? keyHolder.item : keyHolder;
@@ -4270,7 +4270,7 @@ function applyChanges(
   for (let i = 1; i < (original.items as TreeNode[]).length; i++) {
     const prev = original.items[i - 1];
     const curr = original.items[i];
-    if (isComment(prev) && isTable(curr) && materialisedTables.has(curr)) {
+    if (isComment(prev!) && isTable(curr!) && materialisedTables.has(curr)) {
       const gap = curr.loc.start.line - prev.loc.end.line - 1;
       if (gap > 0) {
         shiftNode(curr, { lines: -gap, columns: 0 });
@@ -4286,13 +4286,13 @@ function applyChanges(
   for (let i = 0; i < rootItems.length - 1; i++) {
     const curr = rootItems[i];
     const next = rootItems[i + 1];
-    if ((isTable(curr) || isTableArray(curr)) && curr.items.length === 0
-        && (isTable(next) || isTableArray(next))) {
+    if ((isTable(curr!) || isTableArray(curr!)) && curr.items.length === 0
+        && (isTable(next!) || isTableArray(next!))) {
       const gap = next.loc.start.line - curr.loc.end.line - 1;
       if (gap > 1) {
         const delta = 1 - gap;
         for (let j = i + 1; j < rootItems.length; j++) {
-          shiftNode(rootItems[j], { lines: delta, columns: 0 });
+          shiftNode(rootItems[j]!, { lines: delta, columns: 0 });
         }
       }
     }
@@ -4428,7 +4428,7 @@ function firstSectionHeaderIndex(doc: Document): number {
 function rootKeyValueInsertIndex(doc: Document): number | undefined {
   const firstTableIndex = firstSectionHeaderIndex(doc);
   if (firstTableIndex === -1) return undefined;
-  if (firstTableIndex === 0 || !isComment(doc.items[firstTableIndex - 1])) return firstTableIndex;
+  if (firstTableIndex === 0 || !isComment(doc.items[firstTableIndex - 1]!)) return firstTableIndex;
 
   // R2 compares line numbers, which pending removal offsets would skew.
   applyWrites(doc);
@@ -4552,7 +4552,7 @@ function handleStructuralEdit(
       const toRemove = findAotScopedDocumentItems(original, entryKey.concat(changedKey), aotEntry);
       // Remember where the old sub-entries sat so a replacement [[section]]
       // takes their place rather than drifting below later siblings.
-      const removedIndex = toRemove.length > 0 ? original.items.indexOf(toRemove[0]) : -1;
+      const removedIndex = toRemove.length > 0 ? original.items.indexOf(toRemove[0]!) : -1;
       for (const prefixNode of toRemove) {
         removeMember(original, original, prefixNode);
       }
@@ -4586,11 +4586,11 @@ function handleStructuralEdit(
       // into the entry.
       let tail: any;
       if (isTableArrayValue(jsValue)) {
-        tail = { [changedKey[changedKey.length - 1]]: jsValue };
+        tail = { [changedKey[changedKey.length - 1]!]: jsValue };
       } else {
         tail = jsValue;
         for (let k = change.path.length - 1; k > aotIndexPos; k--) {
-          tail = { [change.path[k]]: tail };
+          tail = { [change.path[k]!]: tail };
         }
       }
       const tailDoc = parseJS(tail, format);
@@ -4681,7 +4681,7 @@ function handleStructuralEdit(
   // Build a nested object matching the change path.
   let nested: any = jsValue;
   for (let i = change.path.length - 1; i >= 0; i--) {
-    nested = { [change.path[i]]: nested };
+    nested = { [change.path[i]!]: nested };
   }
 
   // Remove old nodes matching the key prefix.
@@ -4723,7 +4723,7 @@ function handleStructuralEdit(
     // header would duplicate it and fail the re-parse with "Table already
     // defined" (fuzz seed 1219).  Merge the rendered rows into the
     // surviving table instead.
-    const existingTable = isTable(item)
+    const existingTable = isTable(item!)
       ? (original.items as TreeNode[]).find(t =>
         isTable(t) && arraysEqual((t as Table).key.item.value, (item as Table).key.item.value))
       : undefined;
@@ -4741,7 +4741,7 @@ function handleStructuralEdit(
     // the `[n]` header then tries to extend the inline table, failing the
     // re-parse with "Cannot extend inline table" (fuzz seed 37465).  Merge
     // the inline table's rows into the surviving section instead.
-    if (isKeyValue(item) && isInlineTable(item.value)) {
+    if (isKeyValue(item!) && isInlineTable(item.value)) {
       const kvKey = item.key.value;
       const survivingTable = (original.items as TreeNode[]).find(t =>
         isTable(t) && arraysEqual((t as Table).key.item.value, kvKey));
@@ -4799,7 +4799,7 @@ function handleStructuralEdit(
     // with "Implicit table already defined" (fuzz seed 1898).  Convert
     // each rendered row to a dotted KV under the same prefix and insert
     // those at the root scope instead.
-    if (isTable(item)) {
+    if (isTable(item!)) {
       const tableKey = (item as Table).key.item.value;
       const implicitChildren = findDocumentItemsByKeyPrefix(original, tableKey)
         .filter(t => isKeyValue(t));
@@ -4835,10 +4835,10 @@ function handleStructuralEdit(
     // header, not after it at document level: appending at the end leaves
     // them past unrelated later sections, which capture them on re-parse
     // (fuzz seed 7379: `aw3axx = {…}` landed inside [[y-g]]).
-    if (i > 0 && firstInserted && isTable(firstInserted) && isKeyValue(item)) {
+    if (i > 0 && firstInserted && isTable(firstInserted) && isKeyValue(item!)) {
       insert(original, firstInserted, item, undefined);
     } else {
-      insert(original, original, item, i === 0 ? insertIndex : undefined);
+      insert(original, original, item!, i === 0 ? insertIndex : undefined);
     }
     if (!firstInserted) firstInserted = item;
   }
@@ -4864,7 +4864,7 @@ function handleStructuralEdit(
 function tightenInlineContainerEnd(node: InlineTable | InlineArray): void {
   if (node.items.length > 0) {
     const lastItem = node.items[node.items.length - 1];
-    node.loc.end.column = lastItem.loc.end.column + 1;
+    node.loc.end.column = lastItem!.loc.end.column + 1;
   } else {
     // The end must land on the container's own line: a multiline container
     // that was emptied by zeroing the removal offset still carries its old
@@ -4912,10 +4912,10 @@ function compactInlineContainerAncestors(
   const next = childIndex >= 0 ? inlineContainer.items[childIndex + 1] as TreeNode | undefined : undefined;
   if (childIndex < 0 || !next) return;
 
-  const gap = next.loc.start.column - child.loc.end.column;
-  const columnDelta = resolveInnerEndCol(child) + gap - next.loc.start.column;
+  const gap = next.loc.start.column - child!.loc.end.column;
+  const columnDelta = resolveInnerEndCol(child!) + gap - next.loc.start.column;
   for (let i = childIndex + 1; i < inlineContainer.items.length; i++) {
-    shiftNode(inlineContainer.items[i], { lines: lineDelta, columns: columnDelta });
+    shiftNode(inlineContainer.items[i]!, { lines: lineDelta, columns: columnDelta });
   }
   inlineContainer.loc.end.column += columnDelta;
   for (const node of path) {
@@ -4926,12 +4926,12 @@ function compactInlineContainerAncestors(
 
   for (let i = path.length - 1; i >= 0; i--) {
     const node = path[i];
-    if (isKeyValue(node)) {
+    if (isKeyValue(node!)) {
       node.loc.end = { ...node.value.loc.end };
       if (node.value !== target && isInlineTable(node.value)) {
         node.loc.end.column += columnDelta;
       }
-    } else if (isInlineItem(node)) {
+    } else if (isInlineItem(node!)) {
       node.loc.end = { ...node.item.loc.end };
     }
   }
@@ -4951,11 +4951,11 @@ function recalcInlineContainerEnds(root: TreeNode): void {
         if (node.items.length === 0) return;
         if (node.loc.end.line !== node.loc.start.line) return;
         const lastItem = node.items[node.items.length - 1];
-        const innerEndCol = resolveInnerEndCol(lastItem);
+        const innerEndCol = resolveInnerEndCol(lastItem!);
         const originalEndCol = node.loc.end.column;
         // Preserve the original gap (bracket spacing etc.) between the
         // last item's InlineItem end and the closing brace.
-        const originalGap = originalEndCol - lastItem.loc.end.column;
+        const originalGap = originalEndCol - lastItem!.loc.end.column;
         const newEndCol = innerEndCol + originalGap;
         if (newEndCol !== originalEndCol) {
           node.loc.end.column = newEndCol;
@@ -4967,9 +4967,9 @@ function recalcInlineContainerEnds(root: TreeNode): void {
         if (node.items.length === 0) return;
         if (node.loc.end.line !== node.loc.start.line) return;
         const lastItem = node.items[node.items.length - 1];
-        const innerEndCol = resolveInnerEndCol(lastItem);
+        const innerEndCol = resolveInnerEndCol(lastItem!);
         const originalEndCol = node.loc.end.column;
-        const originalGap = originalEndCol - lastItem.loc.end.column;
+        const originalGap = originalEndCol - lastItem!.loc.end.column;
         const newEndCol = innerEndCol + originalGap;
         if (newEndCol !== originalEndCol) {
           node.loc.end.column = newEndCol;
@@ -5025,7 +5025,7 @@ function cleanupOrphanedComments(doc: Document): void {
       if (value.items.length > 0) return;
 
       // Find the parent container (Document or Table) that holds this KeyValue
-      const parentContainer = findParent(doc, [kv.key.value[0]]);
+      const parentContainer = findParent(doc, [kv.key.value[0]!]);
       if (!parentContainer || !hasItems(parentContainer)) return;
 
       const kvStartLine = kv.loc.start.line;
@@ -5035,7 +5035,7 @@ function cleanupOrphanedComments(doc: Document): void {
       const items = (parentContainer as WithItems).items as TreeNode[];
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i];
-        if (!isComment(item)) continue;
+        if (!isComment(item!)) continue;
         const commentLine = item.loc.start.line;
         if (commentLine >= kvStartLine && commentLine <= kvEndLine) {
           items.splice(i, 1);
@@ -5092,7 +5092,7 @@ function replaceEmptiedTableArrays(doc: Document, emptiedKeys: Map<string, Path>
       if (hostContainer) {
         const stringPath = path.filter((segment): segment is string => typeof segment === 'string');
         const relativeKey = stringPath.slice(hostContainer.key.item.value.length);
-        const emptyArrayDoc = parseJS({ [relativeKey[relativeKey.length - 1]]: [] }, format);
+        const emptyArrayDoc = parseJS({ [relativeKey[relativeKey.length - 1]!]: [] }, format);
         const emptyKV = generateKeyValue(relativeKey, (emptyArrayDoc.items[0] as KeyValue).value);
         applyWrites(doc);
         insert(doc, hostContainer, emptyKV);
@@ -5104,7 +5104,7 @@ function replaceEmptiedTableArrays(doc: Document, emptiedKeys: Map<string, Path>
     // reads the dot as part of a single JS key and emits the quoted `"a.b" = []`, which is a
     // root key literally named `a.b` instead of `b` nested under `a`.
     const keyPath = path.filter((segment): segment is string => typeof segment === 'string');
-    const emptyArrayDoc = parseJS({ [keyPath[keyPath.length - 1]]: [] }, format);
+    const emptyArrayDoc = parseJS({ [keyPath[keyPath.length - 1]!]: [] }, format);
     const emptyKV = generateKeyValue(keyPath, (emptyArrayDoc.items[0] as KeyValue).value);
     // The removal that emptied the array left pending line offsets on the
     // preceding siblings.  Inserting against their pre-offset locs and only
@@ -5133,7 +5133,7 @@ function convertNestedInlineTablesToMultiline(table: Table, original: Document, 
   const processTableForNestedInlines = (currentTable: Table, tablesToAdd: Table[]) => {
     for (let i = currentTable.items.length - 1; i >= 0; i--) {
       const item = currentTable.items[i];
-      if (isKeyValue(item) && isInlineTable(item.value)) {
+      if (isKeyValue(item!) && isInlineTable(item.value)) {
         // Calculate the depth of this nested table
         const nestedTableKey = [...currentTable.key.item.value, ...item.key.value];
         const depth = calculateTableDepth(nestedTableKey);
@@ -5226,10 +5226,10 @@ function regenerateValue(jsValue: any, format: TomlFormat): Value | undefined {
   const replacementToml = toTOML(freshDoc.items, inlineFmt);
   const replacementCst = Array.from(parseTOML(replacementToml));
   const freshItem = replacementCst[0];
-  if (isKeyValue(freshItem)) return freshItem.value;
-  if (isTable(freshItem)
+  if (isKeyValue(freshItem!)) return freshItem.value;
+  if (isTable(freshItem!)
       && freshItem.items.length > 0
-      && isKeyValue(freshItem.items[0])) return freshItem.items[0].value;
+      && isKeyValue(freshItem.items[0]!)) return freshItem.items[0].value;
   return undefined;
 }
 
@@ -5246,6 +5246,7 @@ function findEnclosingInlineTableRowContext(
       return { container, row: candidate };
     }
   }
+  return undefined;
 }
 
 /**
@@ -5301,7 +5302,7 @@ function findAotEntryScopeItems(
   let end = items.length;
   for (let index = start + 1; index < items.length; index++) {
     const sibling = items[index];
-    if (!isTableArray(sibling)) continue;
+    if (!isTableArray(sibling!)) continue;
     const siblingKey = sibling.key.item.value;
     if (siblingKey.length <= entryKey.length && arraysEqual(siblingKey, entryKey.slice(0, siblingKey.length))) {
       end = index;
@@ -5365,9 +5366,9 @@ function findDeepestExplicitTable(
  */
 function generateExplicitParentRow(key: string[], value: any, format: TomlFormat): KeyValue | undefined {
   const inlineFormat = resolveTomlFormat({ ...format, inlineTableStart: 0 }, format);
-  const rowDoc = parseJS({ [key[key.length - 1]]: value }, inlineFormat);
+  const rowDoc = parseJS({ [key[key.length - 1]!]: value }, inlineFormat);
   const rowItems = Array.from(parseTOML(toTOML(rowDoc.items, format)));
-  if (rowItems.length !== 1 || !isKeyValue(rowItems[0])) return undefined;
+  if (rowItems.length !== 1 || !isKeyValue(rowItems[0]!)) return undefined;
   const row = rowItems[0];
   if (key.length > 1) rekeyKeyValue(row, key, format);
   return row;
@@ -5478,12 +5479,12 @@ function replaceBelowExplicitTable(
     if (parentRows.some(row => !keyStartsWith(row.key.value, relativeKey))) return false;
 
     const leaf = fullKey[fullKey.length - 1];
-    const sectionDoc = parseJS({ [leaf]: jsValue }, format);
+    const sectionDoc = parseJS({ [leaf!]: jsValue }, format);
     const sections = Array.from(parseTOML(toTOML(sectionDoc.items, format)));
     if (!sections.every(item => isTable(item) || isTableArray(item))) return false;
 
     const toRemove = findDocumentItemsByKeyPrefix(document, fullKey);
-    const removedIndex = toRemove.length > 0 ? document.items.indexOf(toRemove[0]) : -1;
+    const removedIndex = toRemove.length > 0 ? document.items.indexOf(toRemove[0]!) : -1;
     for (const node of toRemove) removeMember(document, document, node);
     for (const row of parentRows) removeMember(document, parent, row);
 
@@ -5587,15 +5588,15 @@ function removeSiblingsExtendingPrefix(
   for (let si = parentItems.length - 1; si >= 0; si--) {
     const sibling = parentItems[si];
     if (sibling === keep) continue;
-    const siblingKey = isKeyValue(sibling)
+    const siblingKey = isKeyValue(sibling!)
       ? sibling.key.value
-      : isTable(sibling) || isTableArray(sibling)
+      : isTable(sibling!) || isTableArray(sibling!)
         ? sibling.key.item.value
         : undefined;
     if (siblingKey
         && siblingKey.length > prefix.length
         && arraysEqual(siblingKey.slice(0, prefix.length), prefix)) {
-      removeMember(original, container, sibling);
+      removeMember(original, container, sibling!);
     }
   }
 }

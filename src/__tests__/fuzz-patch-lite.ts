@@ -111,8 +111,8 @@ export function getAt(obj: any, path: LitePath): any {
 
 export function setAt(obj: any, path: LitePath, value: unknown): void {
   let current = obj;
-  for (let index = 0; index < path.length - 1; index++) current = current[path[index]];
-  current[path[path.length - 1]] = value;
+  for (let index = 0; index < path.length - 1; index++) current = current[path[index]!];
+  current[path[path.length - 1]!] = value;
 }
 
 // ─── Replacement value generator ─────────────────────────────────────────
@@ -339,7 +339,7 @@ export function fuzzRejectsLite(seed: number): PatchLiteFuzzResult {
     const keys = Object.keys(original);
     if (keys.length > 0) {
       const withRemoved = parse(source);
-      delete withRemoved[keys[0]];
+      delete withRemoved[keys[0]!];
       failure = report(checkRejection(() => patch(source, withRemoved)), 'removed key', withRemoved);
       if (failure) return failure;
     }
@@ -348,7 +348,7 @@ export function fuzzRejectsLite(seed: number): PatchLiteFuzzResult {
     const leaves = collectEditableLeaves(original);
     if (leaves.length > 0) {
       const retyped = parse(source);
-      setAt(retyped, leaves[0], { nested: 1 });
+      setAt(retyped, leaves[0]!, { nested: 1 });
       failure = report(checkRejection(() => patch(source, retyped)), 'container replacement', retyped);
       if (failure) return failure;
     }
@@ -357,10 +357,10 @@ export function fuzzRejectsLite(seed: number): PatchLiteFuzzResult {
     const arrays = collectArrayPaths(original);
     if (arrays.length > 0) {
       const arrayPath = arrays[0];
-      const originalArray = getAt(original, arrayPath);
+      const originalArray = getAt(original, arrayPath!);
 
       const longer = parse(source);
-      const longerArray = getAt(longer, arrayPath);
+      const longerArray = getAt(longer, arrayPath!);
       longerArray.push(originalArray.length > 0 ? originalArray[0] : 1);
       failure = report(checkRejection(() => patch(source, longer)), 'array append', longer);
       if (failure) return failure;
@@ -372,7 +372,7 @@ export function fuzzRejectsLite(seed: number): PatchLiteFuzzResult {
         stableStringify(originalArray[0]) !== stableStringify(originalArray[1])
       ) {
         const swapped = parse(source);
-        const swappedArray = getAt(swapped, arrayPath);
+        const swappedArray = getAt(swapped, arrayPath!);
         const first = swappedArray[0];
         swappedArray[0] = swappedArray[1];
         swappedArray[1] = first;
@@ -393,7 +393,7 @@ function main() {
   const args = process.argv.slice(2);
   const param = (name: string, def: number) => {
     const index = args.indexOf(`--${name}`);
-    return index >= 0 ? parseInt(args[index + 1], 10) : def;
+    return index >= 0 ? parseInt(args[index + 1]!, 10) : def;
   };
   const count = param('count', 2000);
   const startSeed = param('seed', 0);

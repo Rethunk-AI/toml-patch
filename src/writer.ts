@@ -1,12 +1,12 @@
 import {
   NodeType,
-  TreeNode,
-  Document,
-  Key,
-  Value,
-  InlineArray,
-  InlineArrayItem,
-  InlineTableItem,
+  type TreeNode,
+  type Document,
+  type Key,
+  type Value,
+  type InlineArray,
+  type InlineArrayItem,
+  type InlineTableItem,
   isKeyValue,
   isTable,
   isTableArray,
@@ -16,20 +16,20 @@ import {
   hasItem,
   isComment,
   isDocument,
-  InlineTable,
-  TableArray,
-  TableKey,
-  TableArrayKey,
-  Table,
-  KeyValue,
-  Comment,
-  InlineItem,
+  type InlineTable,
+  type TableArray,
+  type TableKey,
+  type TableArrayKey,
+  type Table,
+  type KeyValue,
+  type Comment,
+  type InlineItem,
   isInlineItem,
-  Block,
+  type Block,
   isBlock,
-  WithItems
+  type WithItems
 } from './cst';
-import { Span, getSpan, clonePosition } from './location';
+import { type Span, getSpan, clonePosition } from './location';
 import { last } from './utils';
 import traverse from './traverse';
 import { getCommaSpace } from './inline-comma-space';
@@ -264,7 +264,7 @@ export function insert(root: Root, parent: TreeNode, child: TreeNode, index?: nu
     const commentContainer = enclosingInlineValue(parent, commentHostItems);
     for (let i = 0; i < commentHostItems.length; i++) {
       const item = commentHostItems[i];
-      if (!isComment(item)) continue;
+      if (!isComment(item!)) continue;
       const commentLine = (item as Comment).loc.start.line;
       if (commentLine < commentContainer.loc.start.line || commentLine > commentContainer.loc.end.line) continue;
       if (commentLine < insertionLine) {
@@ -335,7 +335,7 @@ function insertOnNewLine(
     } else {
       let hasComment = false;
       for (let i = 0; i < index; i++) {
-        if (isComment(parent.items[i])) { hasComment = true; break; }
+        if (isComment(parent.items[i]!)) { hasComment = true; break; }
       }
       if (!hasComment) {
         furthestPrevious = previous;
@@ -344,7 +344,7 @@ function insertOnNewLine(
         let maxEndColumn = -1;
         for (let i = 0; i < index; i++) {
           const item = parent.items[i];
-          const end = item.loc.end;
+          const end = item!.loc.end;
           if (end.line > maxEndLine || (end.line === maxEndLine && end.column > maxEndColumn)) {
             maxEndLine = end.line;
             maxEndColumn = end.column;
@@ -726,7 +726,7 @@ export function remove(root: Root, parent: TreeNode, node: TreeNode, hostItems?:
       throw new Error('Node not found in parent for removal');
     }
 
-    node = parent.items[index];
+    node = parent.items[index]!;
   }
 
   const previous = parent.items[index - 1];
@@ -803,7 +803,7 @@ export function remove(root: Root, parent: TreeNode, node: TreeNode, hostItems?:
     // anchor insertOnNewLine picks.
     let precedingEndLine = -1;
     for (let i = 0; i < index; i++) {
-      const end = parent.items[i].loc.end.line;
+      const end = parent.items[i]!.loc.end.line;
       if (end > precedingEndLine) precedingEndLine = end;
     }
 
@@ -1031,7 +1031,7 @@ export function remove(root: Root, parent: TreeNode, node: TreeNode, hostItems?:
 
     for (let i = 0; i < commentHostItems.length; i++) {
       const item = commentHostItems[i];
-      if (!isComment(item)) continue;
+      if (!isComment(item!)) continue;
       const commentLine = (item as Comment).loc.start.line;
       if (commentLine < commentContainer.loc.start.line || commentLine > commentContainer.loc.end.line) continue;
       if (commentLine === removedLine &&
@@ -1048,7 +1048,7 @@ export function remove(root: Root, parent: TreeNode, node: TreeNode, hostItems?:
     }
 
     for (let i = toRemove.length - 1; i >= 0; i--) {
-      commentHostItems.splice(toRemove[i], 1);
+      commentHostItems.splice(toRemove[i]!, 1);
     }
   }
 }
@@ -1075,7 +1075,7 @@ export function recalcContainerEnd(container: Document | Table | TableArray) {
   }
 
   for (let i = 0; i < container.items.length; i++) {
-    const e = container.items[i].loc.end;
+    const e = container.items[i]!.loc.end;
     if (e.line > endLine || (e.line === endLine && e.column > endCol)) {
       endLine = e.line;
       endCol = e.column;
@@ -1145,7 +1145,7 @@ export function applyWrites(root: TreeNode) {
       case NodeType.Document: {
         const doc = node as Document;
         shiftLoc(doc);
-        for (let i = 0; i < doc.items.length; i++) visitNode(doc.items[i]);
+        for (let i = 0; i < doc.items.length; i++) visitNode(doc.items[i]!);
         shiftEnd(doc);
         recalcContainerEnd(doc);
         break;
@@ -1154,7 +1154,7 @@ export function applyWrites(root: TreeNode) {
         const tbl = node as Table;
         shiftLoc(tbl);
         visitNode(tbl.key);
-        for (let i = 0; i < tbl.items.length; i++) visitNode(tbl.items[i]);
+        for (let i = 0; i < tbl.items.length; i++) visitNode(tbl.items[i]!);
         shiftEnd(tbl);
         recalcContainerEnd(tbl);
         break;
@@ -1163,7 +1163,7 @@ export function applyWrites(root: TreeNode) {
         const ta = node as TableArray;
         shiftLoc(ta);
         visitNode(ta.key);
-        for (let i = 0; i < ta.items.length; i++) visitNode(ta.items[i]);
+        for (let i = 0; i < ta.items.length; i++) visitNode(ta.items[i]!);
         shiftEnd(ta);
         recalcContainerEnd(ta);
         break;
@@ -1200,12 +1200,12 @@ export function applyWrites(root: TreeNode) {
         // Fast path: no offsets on this subtree — skip WeakMap lookups.
         if (!enter.get(ia) && !exit.get(ia)) {
           shiftPositionsNoOffsets(ia);
-          for (let i = 0; i < ia.items.length; i++) visitNode(ia.items[i]);
+          for (let i = 0; i < ia.items.length; i++) visitNode(ia.items[i]!);
           shiftPositionsNoOffsetsEnd(ia);
           break;
         }
         shiftLoc(ia);
-        for (let i = 0; i < ia.items.length; i++) visitNode(ia.items[i]);
+        for (let i = 0; i < ia.items.length; i++) visitNode(ia.items[i]!);
         shiftEnd(ia);
         break;
       }
@@ -1213,12 +1213,12 @@ export function applyWrites(root: TreeNode) {
         const it = node as InlineTable;
         if (!enter.get(it) && !exit.get(it)) {
           shiftPositionsNoOffsets(it);
-          for (let i = 0; i < it.items.length; i++) visitNode(it.items[i]);
+          for (let i = 0; i < it.items.length; i++) visitNode(it.items[i]!);
           shiftPositionsNoOffsetsEnd(it);
           break;
         }
         shiftLoc(it);
-        for (let i = 0; i < it.items.length; i++) visitNode(it.items[i]);
+        for (let i = 0; i < it.items.length; i++) visitNode(it.items[i]!);
         shiftEnd(it);
         break;
       }
@@ -1457,7 +1457,7 @@ export function perLine(array: InlineArray | InlineTable, excluded?: TreeNode): 
   const items = excluded ? array.items.filter(item => item !== excluded) : array.items;
   if (!items.length) return array.loc.end.line > array.loc.start.line;
   const startsOnSeparateLines = array.loc.end.line > array.loc.start.line && items.every((item, index) =>
-    index === 0 || item.loc.start.line > items[index - 1].loc.start.line
+    index === 0 || item.loc.start.line > items[index - 1]!.loc.start.line
   );
   return startsOnSeparateLines;
 }

@@ -88,13 +88,13 @@ function setAt(obj: any, path: (string | number)[], value: unknown): void {
     const seg = path[i];
     const next = path[i + 1];
     if (typeof next === 'number') {
-      if (!Array.isArray(current[seg])) current[seg] = [];
-      current = current[seg];
+      if (!Array.isArray(current[seg!])) current[seg!] = [];
+      current = current[seg!];
     } else {
-      if (current[seg] == null || typeof current[seg] !== 'object' || Array.isArray(current[seg])) {
-        current[seg] = {};
+      if (current[seg!] == null || typeof current[seg!] !== 'object' || Array.isArray(current[seg!])) {
+        current[seg!] = {};
       }
-      current = current[seg];
+      current = current[seg!];
     }
   }
   const last = path[path.length - 1];
@@ -323,27 +323,27 @@ export function generateMutation(
   }
 
   const path = candidates[rng.nextInt(candidates.length)];
-  const parent = path.length > 0 ? getAt(obj, path.slice(0, -1)) : obj;
-  const existing = getAt(obj, path);
+  const parent = path!.length > 0 ? getAt(obj, path!.slice(0, -1)) : obj;
+  const existing = getAt(obj, path!);
   const isArrayParent = Array.isArray(parent);
-  const key = path[path.length - 1];
+  const key = path![path!.length - 1];
 
   if (dateFocus && existing instanceof Date) {
     // Replace a date with another date: an added, removed or retyped key would
     // not exercise the fraction at all.
-    return { path, kind: 'change-value', newValue: randomSubSecondDate(rng) };
+    return { path: path!, kind: 'change-value', newValue: randomSubSecondDate(rng) };
   }
 
   const roll = rng.next();
 
   if (isArrayParent && typeof key === 'number') {
     if (existing !== undefined && roll < 0.3) {
-      return { path, kind: 'remove-array-item' };
+      return { path: path!, kind: 'remove-array-item' };
     }
     if (roll < 0.6) {
-      return { path, kind: 'change-value', newValue: randomMutationValue(rng, subSecondDates) };
+      return { path: path!, kind: 'change-value', newValue: randomMutationValue(rng, subSecondDates) };
     }
-    return { path, kind: 'add-array-item', newValue: randomMutationValue(rng, subSecondDates) };
+    return { path: path!, kind: 'add-array-item', newValue: randomMutationValue(rng, subSecondDates) };
   }
 
   if (existing !== undefined && typeof existing === 'object' && !(existing instanceof Date) && roll < 0.1) {
@@ -351,15 +351,15 @@ export function generateMutation(
   }
 
   if (existing !== undefined && roll < 0.3) {
-    return { path, kind: 'delete-key' };
+    return { path: path!, kind: 'delete-key' };
   }
   if (existing !== undefined && roll < 0.4) {
-    return { path, kind: 'change-type', newValue: randomMutationValue(rng, subSecondDates) };
+    return { path: path!, kind: 'change-type', newValue: randomMutationValue(rng, subSecondDates) };
   }
   if (existing !== undefined) {
-    return { path, kind: 'change-value', newValue: randomMutationValue(rng, subSecondDates) };
+    return { path: path!, kind: 'change-value', newValue: randomMutationValue(rng, subSecondDates) };
   }
-  return { path, kind: 'add-key', newValue: randomMutationValue(rng, subSecondDates) };
+  return { path: path!, kind: 'add-key', newValue: randomMutationValue(rng, subSecondDates) };
 }
 
 export function applyMutation(obj: any, mutation: RandomMutation): void {
@@ -812,7 +812,7 @@ function main() {
   const args = process.argv.slice(2);
   const param = (name: string, def: number) => {
     const i = args.indexOf(`--${name}`);
-    return i >= 0 ? parseInt(args[i + 1], 10) : def;
+    return i >= 0 ? parseInt(args[i + 1]!, 10) : def;
   };
   const count = param('count', 200);
   const startSeed = param('seed', 0);
@@ -848,7 +848,7 @@ function main() {
       }
       if (result.modifiedObj) {
         console.log('--- Modified object (JSON) ---');
-        console.log(JSON.stringify(result.modifiedObj, (k, v) =>
+        console.log(JSON.stringify(result.modifiedObj, (_k, v) =>
           typeof v === 'bigint' ? Number(v) : v, 2));
       }
       if (result.originalToml) {

@@ -1,7 +1,7 @@
-import { Value, NodeType, TreeNode, CST, InlineTable, Table, TableArray, KeyValue } from './cst';
+import { type Value, NodeType, type TreeNode, type CST, type InlineTable, type Table, type TableArray, type KeyValue } from './cst';
 import { last, blank } from './utils';
 import ParseError from './parse-error';
-import { IntegersAsBigInt } from './parse-options';
+import type { IntegersAsBigInt } from './parse-options';
 import { LocalDate, LocalTime, LocalDateTime, OffsetDateTime } from './date-format';
 
 function integerFromRaw(raw: string, mode: IntegersAsBigInt = 'asNeeded'): number | bigint {
@@ -309,7 +309,7 @@ function validateKey(
   root: PathState,
   prefix: string[],
   key: string[],
-  type: NodeType.Table | NodeType.TableArray | NodeType.KeyValue
+  type: typeof NodeType.Table | typeof NodeType.TableArray | typeof NodeType.KeyValue
 ) {
   const fullPath = prefix.concat(key);
   const fullName = joinKey(fullPath);
@@ -322,12 +322,12 @@ function validateKey(
     const runtimeValue = node.runtimeValue;
     if (
       node.kind === 'date'
-      && !node.children.has(nextSegment)
+      && !node.children.has(nextSegment!)
       && runtimeValue !== null
       && typeof runtimeValue === 'object'
-      && nextSegment in runtimeValue
+      && nextSegment! in runtimeValue
     ) {
-      throw new Error(`Value already defined for ${joinKey(path.concat(nextSegment))}`);
+      throw new Error(`Value already defined for ${joinKey(path.concat(nextSegment!))}`);
     }
   }
 

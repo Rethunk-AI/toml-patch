@@ -276,10 +276,10 @@ describe('composable patch fuzz profiles', () => {
 
     expect(second).toEqual(first);
     expect(new Set(first).size).toBe(first.length);
-    expect(createHash('sha256').update(first[1]).digest('hex')).toBe(
+    expect(createHash('sha256').update(first[1]!).digest('hex')).toBe(
       '5fc174fce632f238a0914dfa6c86f4994feea6c415fb03f2d7d56ac503e7757d'
     );
-    expect(createHash('sha256').update(first[3]).digest('hex')).toBe(
+    expect(createHash('sha256').update(first[3]!).digest('hex')).toBe(
       '2291447545c16b0f56df026db6e9237ddb4ace68d05452b07f388371057076a8'
     );
   });

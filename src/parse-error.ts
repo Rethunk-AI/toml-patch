@@ -1,4 +1,4 @@
-import { Position, getLine } from './location';
+import { type Position, getLine } from './location';
 
 export default class ParseError extends Error {
   line: number;

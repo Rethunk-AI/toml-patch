@@ -1,4 +1,4 @@
-import { TreeNode, isKeyValue, isTable, isTableArray, isDocument, hasItems, isInlineItem, Document, Table, TableArray, Block } from './cst';
+import { type TreeNode, isKeyValue, isTable, isTableArray, isDocument, hasItems, isInlineItem, type Document, type Table, type TableArray, type Block } from './cst';
 import { arraysEqual, stableStringify } from './utils';
 
 export type Path = Array<string | number>;
@@ -205,7 +205,9 @@ function findByPathInAotScope(
 export function tryFindByPath(node: TreeNode, path: Path): TreeNode | undefined {
   try {
     return findByPath(node, path);
-  } catch (err) {}
+  } catch (err) {
+    return undefined;
+  }
 }
 
 export function findParent(node: TreeNode, path: Path): TreeNode {

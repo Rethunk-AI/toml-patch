@@ -1,4 +1,4 @@
-import { Value, KeyValue, Document, InlineArray, InlineTable, InlineItem, isKeyValue, isInlineArray, isInlineTable } from './cst';
+import { type Value, type KeyValue, type Document, type InlineArray, type InlineTable, type InlineItem, isKeyValue, isInlineArray, isInlineTable } from './cst';
 import {
   generateDocument,
   generateKeyValue,
@@ -210,7 +210,7 @@ function walkInlineArray(
     }
     if (inline_array.items.length > 0 && format.trailingComma) {
       const last = inline_array.items[inline_array.items.length - 1];
-      last.comma = true;
+      last!.comma = true;
       inline_array.loc.end.column++;
     }
     return inline_array;
@@ -252,7 +252,7 @@ function walkInlineTable(
     }
     if (inline_table.items.length > 0 && format.trailingComma) {
       const last = inline_table.items[inline_table.items.length - 1];
-      last.comma = true;
+      last!.comma = true;
       inline_table.loc.end.column++;
     }
     return inline_table;

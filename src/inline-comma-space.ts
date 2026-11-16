@@ -1,4 +1,4 @@
-import { InlineArray, InlineTable } from './cst';
+import type { InlineArray,InlineTable } from './cst';
 
 // Parse-time comma spacing per inline container: the horizontal gap a
 // separating comma occupies between two adjacent elements (1 = compact

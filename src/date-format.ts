@@ -65,7 +65,7 @@ function formatFraction(digits: string, originalRaw: string, msRe: RegExp): stri
  */
 function renderedFraction(value: Date): string {
   const match = value.toISOString().match(/\.(\d+)/);
-  return match ? match[1] : '';
+  return match ? match[1]! : '';
 }
 
 /**
@@ -105,7 +105,7 @@ function fmtMs(ms: number, origFmt: string, msRe: RegExp = TRAILING_FRACTION): s
   const digits = valueFractionDigits(ms);
   if (origFmt && origFmt.includes('.')) {
     const match = origFmt.match(msRe);
-    if (match && match[1].startsWith(String(ms).padStart(3, '0'))) return '.' + match[1];
+    if (match && match[1]!.startsWith(String(ms).padStart(3, '0'))) return '.' + match[1];
     return formatFraction(digits, origFmt, msRe);
   }
   return digits ? '.' + digits : '';
@@ -116,7 +116,7 @@ function parseOffsetMinutes(offset: string): number {
   if (offset === 'Z') return 0;
   const sign = offset[0] === '+' ? 1 : -1;
   const [h, m] = offset.slice(1).split(':');
-  return sign * (parseInt(h) * 60 + parseInt(m));
+  return sign * (parseInt(h!) * 60 + parseInt(m!));
 }
 
 /**
@@ -215,7 +215,7 @@ export class DateFormatHelper {
         return new LocalDateTime(isoString, false);
       }
       const dateStr = newJSDate.toISOString().split('T')[0];
-      return new LocalDate(dateStr);
+      return new LocalDate(dateStr!);
     } else if (DateFormatHelper.IS_TIME_ONLY.test(originalRaw)) {
       // Local time (time-only) - format: 10:30:00
       // Rebuilt from the source format like the other kinds: a value that is
@@ -247,7 +247,7 @@ export class DateFormatHelper {
       const useSpaceSeparator = DateFormatHelper.IS_OFFSET_DATETIME_SPACE.test(originalRaw);
       
       // Convert UTC time to local time in the original timezone
-      const localTime = new Date(newJSDate.getTime() + parseOffsetMinutes(originalOffset) * 60000);
+      const localTime = new Date(newJSDate.getTime() + parseOffsetMinutes(originalOffset!) * 60000);
       const p = fmtParts(localTime);
       const sep = useSpaceSeparator ? ' ' : 'T';
       const msSuffix = fractionSuffix(newJSDate, p.ms, originalRaw, OFFSET_FRACTION);
@@ -271,7 +271,7 @@ export class LocalDate extends Date {
     super(value);
   }
   
-  toISOString(): string {
+  override toISOString(): string {
     const p = fmtParts(this);
     return `${p.year}-${p.month}-${p.day}`;
   }
@@ -297,7 +297,7 @@ export class LocalTime extends Date {
     this.originalFormat = originalFormat;
   }
   
-  toISOString(): string {
+  override toISOString(): string {
     const p = fmtParts(this);
     return `${p.hours}:${p.minutes}:${p.seconds}${fmtMs(p.ms, this.originalFormat)}`;
   }
@@ -323,7 +323,7 @@ export class LocalDateTime extends Date {
     this.originalFormat = originalFormat || value;
   }
   
-  toISOString(): string {
+  override toISOString(): string {
     const p = fmtParts(this);
     const sep = this.useSpaceSeparator ? ' ' : 'T';
     return `${p.year}-${p.month}-${p.day}${sep}${p.hours}:${p.minutes}:${p.seconds}${fmtMs(p.ms, this.originalFormat)}`;
@@ -356,7 +356,7 @@ export class OffsetDateTime extends Date {
     }
   }
   
-  toISOString(): string {
+  override toISOString(): string {
     if (this.originalOffset) {
       const localTime = new Date(this.getTime() + parseOffsetMinutes(this.originalOffset) * 60000);
       const p = fmtParts(localTime);
