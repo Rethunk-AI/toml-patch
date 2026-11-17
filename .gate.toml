@@ -6,3 +6,7 @@ serial = true
 # CI's runner needs --with-deps for chromium's system libraries, which installs them through sudo; this machine already has them.
 [gates."playwright:install"]
 run = "pnpm exec playwright install chromium"
+
+# CI fuzzes every push; locally the 10,000 seeds run only under `gate --e2e`.
+[gates.fuzz1]
+e2e = true
