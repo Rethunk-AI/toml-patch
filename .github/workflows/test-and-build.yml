@@ -89,3 +89,18 @@ jobs:
         with:
           path: dist/
           name: dist-${{ matrix.node-version }}
+
+  # One required check for branch protection so a matrix leg that never ran is not treated as passing.
+  all-checks:
+    if: always()
+    needs: [build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Fail if any check did not succeed
+        run: |
+          if [ "${{ needs.build.result }}" != "success" ]; then
+            echo "build=${{ needs.build.result }}"
+            exit 1
+          fi
+          echo "all checks passed"
