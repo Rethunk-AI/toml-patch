@@ -2,3 +2,7 @@
 [gates."publish:jsr"]
 run = "pnpm exec jsr publish --dry-run --allow-dirty"
 serial = true
+
+# CI's runner needs --with-deps for chromium's system libraries, which installs them through sudo; this machine already has them.
+[gates."playwright:install"]
+run = "pnpm exec playwright install chromium"
