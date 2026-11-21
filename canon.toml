@@ -1,0 +1,5 @@
+[deviations]
+"patterns-ci-workflow-00002" = "workflows are upstream-owned (DecimalTurn/toml-patch); the fork keeps them mergeable"
+"patterns-ci-workflow-00003" = "workflows are upstream-owned (DecimalTurn/toml-patch); the fork keeps them mergeable"
+"patterns-ci-workflow-00004" = "workflows are upstream-owned (DecimalTurn/toml-patch); the fork keeps them mergeable"
+"patterns-ci-workflow-00009" = "workflows are upstream-owned (DecimalTurn/toml-patch); the fork keeps them mergeable"

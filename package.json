@@ -1,6 +1,6 @@
 {
   "name": "@decimalturn/toml-patch",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "contributors": [
     "Tim Hall <tim.hall.engr@gmail.com>",
     "Martin Leduc <31558169+DecimalTurn@users.noreply.github.com>"
@@ -29,7 +29,7 @@
     "preserve-formatting",
     "edit-in-place"
   ],
-  "packageManager": "pnpm@12.11.2",
+  "packageManager": "pnpm@12.20.0",
   "engines": {
     "node": ">=16"
   },
@@ -65,6 +65,7 @@
     "fuzz3": "npx -y tsx scripts/fuzz-run3.ts --seed 0 --to 9999 --mutations 3",
     "fuzz4": "npx -y tsx scripts/fuzz-run4.ts --seed 0 --to 9999 --mutations 3",
     "fuzz5": "npx -y tsx scripts/fuzz-run5.ts --seed 0 --to 9999 --mutations 1 --progress 100",
+    "fuzz6": "npx -y tsx scripts/fuzz-run6.ts --seed 0 --to 9999 --mutations 1 --progress 100",
     "bench:bundle-size": "node benchmark/bundle-size.mjs",
     "bench:parse": "node benchmark/parse-benchmark.mjs",
     "bench:stringify": "node benchmark/stringify-benchmark.mjs",
@@ -85,7 +86,7 @@
     "publish:jsr": "jsr publish --allow-dirty"
   },
   "devDependencies": {
-    "@decimalturn/toml-patch": "npm:@decimalturn/toml-patch@3.3.0",
+    "@decimalturn/toml-patch": "npm:@decimalturn/toml-patch@3.3.2",
     "@js-temporal/polyfill": "^0.5.1",
     "@playwright/test": "^1.59.1",
     "@types/js-yaml": "^4.0.0",
